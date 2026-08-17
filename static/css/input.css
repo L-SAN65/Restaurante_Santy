@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #1e293b;
+  }
+}
+
+@layer components {
+  /* Botones base Stitch: altura 40px, padding 16px, radius 8px */
+  .btn {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-component px-4 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-hover focus:ring-primary;
+  }
+
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white text-text-primary hover:bg-slate-50 focus:ring-slate-400;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-600 focus:ring-danger;
+  }
+
+  /* Inputs Stitch: altura 40px, border 1px, focus ring verde */
+  .input {
+    @apply h-10 w-full rounded-component border border-slate-300 bg-white px-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-medium text-text-primary;
+  }
+
+  .card {
+    @apply rounded-card bg-surface-card shadow-card;
+  }
+
+  /* Badge Stitch: radio completo, padding 4px 12px */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-badge px-3 py-0.5 text-xs font-semibold;
+  }
+
+  /* Scrim overlay para modales */
+  .scrim {
+    @apply fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4;
+  }
+
+  /* Navegación sidebar camino del logo */
+  .nav-link {
+    @apply flex w-full items-center justify-center gap-2 rounded-component px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-bg hover:text-text-primary lg:justify-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

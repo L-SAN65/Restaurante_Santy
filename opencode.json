@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "stitch": {
+      "type": "local",
+      "command": ["npx", "-y", "@_davideast/stitch-mcp", "proxy"],
+      "enabled": true,
+      "environment": {
+        "STITCH_API_KEY": "TU_API_KEY_AQUI"
+      }
+    }
+  }
+}

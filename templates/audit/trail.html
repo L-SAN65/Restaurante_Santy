@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Bitácora de Auditoría · Santy{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-3xl font-semibold tracking-tight">Bitácora de Auditoría</h1>
+
+<div class="mb-4 rounded-component border-l-4 border-danger bg-red-50 px-4 py-3 text-sm text-danger">
+  Bitácora inmutable — no se permite edición desde roles operativos.
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Fecha/Hora</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Usuario</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Acción</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Resultado</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Objeto</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for entry in entries %}
+      <tr>
+        <td class="px-4 py-2 tabular-nums">{{ entry.timestamp }}</td>
+        <td class="px-4 py-2">{{ entry.user.email|default:"—" }}</td>
+        <td class="px-4 py-2">{{ entry.get_action_display }}</td>
+        <td class="px-4 py-2">
+          <span class="badge {% if entry.result == 'SUCCESS' %}bg-primary-soft text-primary{% else %}bg-danger/10 text-danger{% endif %}">
+            {{ entry.get_result_display }}
+          </span>
+        </td>
+        <td class="px-4 py-2">{{ entry.object_type }} {{ entry.object_id|default:"" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-text-secondary">Sin registros</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

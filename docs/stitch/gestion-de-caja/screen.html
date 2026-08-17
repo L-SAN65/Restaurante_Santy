@@ -1,0 +1,307 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Gestión de Caja - Luxe Dining</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#484644",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#cac6c2",
+                        "tertiary-fixed": "#e6e2de",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e4e2dd",
+                        "outline-variant": "#c7c6ca",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#241a00",
+                        "surface-bright": "#fbf9f4",
+                        "tertiary-container": "#1c1b19",
+                        "surface-variant": "#e4e2dd",
+                        "secondary-fixed-dim": "#e9c349",
+                        "primary-fixed-dim": "#c8c6c7",
+                        "secondary": "#735c00",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777b",
+                        "surface-container": "#f0eee9",
+                        "inverse-primary": "#c8c6c7",
+                        "background": "#fbf9f4",
+                        "surface": "#fbf9f4",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#745c00",
+                        "on-tertiary-container": "#868380",
+                        "on-error": "#ffffff",
+                        "on-background": "#1b1c19",
+                        "inverse-on-surface": "#f2f1ec",
+                        "secondary-container": "#fed65b",
+                        "secondary-fixed": "#ffe088",
+                        "surface-container-low": "#f5f3ee",
+                        "on-primary-container": "#858384",
+                        "primary": "#000000",
+                        "on-secondary-fixed-variant": "#574500",
+                        "primary-fixed": "#e5e2e3",
+                        "surface-tint": "#5f5e5f",
+                        "inverse-surface": "#30312e",
+                        "on-tertiary-fixed": "#1c1b19",
+                        "on-surface-variant": "#46474a",
+                        "primary-container": "#1b1b1c",
+                        "tertiary": "#000000",
+                        "on-surface": "#1b1c19",
+                        "surface-container-high": "#eae8e3",
+                        "surface-dim": "#dbdad5",
+                        "on-primary-fixed-variant": "#474647",
+                        "on-primary-fixed": "#1b1b1c",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased flex">
+<!-- SideNavBar (From Shared Components JSON) -->
+<nav class="bg-surface-container text-primary h-screen w-64 fixed left-0 top-0 flex flex-col p-4 z-40 border-r border-surface-variant">
+<!-- Header -->
+<div class="mb-8 mt-4 px-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="font-headline-md text-headline-md">L</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary">Management</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Luxe Dining Admin</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<ul class="flex flex-col flex-1">
+<li class="">
+<a class="text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 py-3 mb-1 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-sm text-label-sm">Reservations</span>
+</a>
+</li>
+<li class="">
+<a class="text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 py-3 mb-1 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-sm text-label-sm">Table Map</span>
+</a>
+</li>
+<li class="">
+<a class="text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 py-3 mb-1 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-label-sm text-label-sm">Menu Manager</span>
+</a>
+</li>
+<li class="">
+<!-- Active State for Cash Management context -->
+<a class="bg-secondary-container text-on-secondary-container font-semibold translate-x-1 transition-transform rounded-lg px-4 py-3 mb-1 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">badge</span>
+<span class="font-label-sm text-label-sm">Staff Portal</span>
+</a>
+</li>
+</ul>
+<!-- CTA -->
+<div class="mt-auto">
+<button class="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-md text-label-md py-3 rounded-full flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                Quick Reserve
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 min-h-screen p-margin-desktop max-w-container-max">
+<!-- Page Header Row -->
+<div class="flex justify-between items-end mb-10">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Turno Actual • Terminal POS 01</p>
+<h2 class="font-headline-lg text-headline-lg text-primary flex items-center gap-4">
+                    Gestión de Caja
+                    <span class="bg-surface-container-high border border-outline-variant text-primary font-label-sm text-label-sm px-3 py-1 rounded-full flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                        Abierta
+                    </span>
+</h2>
+</div>
+<!-- Primary Action -->
+<button class="bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-on-secondary transition-all shadow-sm hover:shadow-md font-label-md text-label-md px-6 py-3 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined">lock_clock</span>
+                Cerrar Caja
+            </button>
+</div>
+<!-- Tonal Layering: Bento Grid for Stats -->
+<div class="grid grid-cols-1 gap-gutter mb-10 md:grid-cols-3 md:grid-cols-4">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 flex flex-col justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-outline">account_circle</span>
+<span class="font-label-sm text-label-sm">Cajero en Turno</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">M. Dubois</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Inicio: 08:30 AM</p>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 flex flex-col justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-outline">payments</span>
+<span class="font-label-sm text-label-sm">Fondo Inicial</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">$500.00</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Verificado al abrir</p>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 flex flex-col justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-outline">point_of_sale</span>
+<span class="font-label-sm text-label-sm">Ventas Efectivo (Turno)</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">$1,245.50</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">24 Transacciones</p>
+</div>
+</div>
+<!-- Stat Card 4 (Highlight) -->
+<div class="bg-surface-container text-on-surface border border-outline-variant rounded-xl p-6 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-sm text-label-sm font-bold">Total Esperado</span>
+</div>
+</div>
+<div class="relative z-10">
+<p class="font-headline-lg text-headline-lg text-primary">$1,745.50</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">info</span>
+                        Tolerancia de descuadre: ≤ $2.00
+                    </p>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 flex flex-col justify-between">
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-outline">receipt_long</span>
+<span class="font-label-sm text-label-sm">Pendientes de Cobro</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">8 Órdenes</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Listas en cocina (KDS)</p>
+</div>
+</div></div>
+<!-- Transactions Section -->
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden">
+<div class="p-6 border-b border-surface-variant flex justify-between items-center bg-surface-bright">
+<h3 class="font-headline-md text-headline-md text-primary">Transacciones Recientes</h3>
+<button class="text-primary hover:text-on-surface-variant transition-colors font-label-md text-label-md flex items-center gap-1">
+                    Ver todas
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr>
+<th class="font-label-md text-label-md text-on-surface-variant p-4 border-b border-surface-variant font-normal">Hora</th>
+<th class="font-label-md text-label-md text-on-surface-variant p-4 border-b border-surface-variant font-normal">Ticket #</th>
+<th class="font-label-md text-label-md text-on-surface-variant p-4 border-b border-surface-variant font-normal">Mesa / Orden</th>
+<th class="font-label-md text-label-md text-on-surface-variant p-4 border-b border-surface-variant font-normal">Tipo</th>
+<th class="font-label-md text-label-md text-on-surface-variant p-4 border-b border-surface-variant text-right font-normal">Monto</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="p-4 border-b border-surface-variant text-on-surface-variant group-hover:text-primary">12:45 PM</td>
+<td class="p-4 border-b border-surface-variant text-primary font-medium">#10042</td>
+<td class="p-4 border-b border-surface-variant text-on-surface">Mesa 12</td>
+<td class="p-4 border-b border-surface-variant">
+<span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant border border-surface-dim">Efectivo</span>
+</td>
+<td class="p-4 border-b border-surface-variant text-right text-primary font-medium">$125.00</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="p-4 border-b border-surface-variant text-on-surface-variant group-hover:text-primary">12:30 PM</td>
+<td class="p-4 border-b border-surface-variant text-primary font-medium">#10041</td>
+<td class="p-4 border-b border-surface-variant text-on-surface">Bar 04</td>
+<td class="p-4 border-b border-surface-variant">
+<span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant border border-surface-dim">Tarjeta</span>
+</td>
+<td class="p-4 border-b border-surface-variant text-right text-primary font-medium">$45.50</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="p-4 border-b border-surface-variant text-on-surface-variant group-hover:text-primary">12:15 PM</td>
+<td class="p-4 border-b border-surface-variant text-primary font-medium">#10040</td>
+<td class="p-4 border-b border-surface-variant text-on-surface">Mesa 08</td>
+<td class="p-4 border-b border-surface-variant">
+<span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant border border-surface-dim">Efectivo</span>
+</td>
+<td class="p-4 border-b border-surface-variant text-right text-primary font-medium">$210.00</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="p-4 border-b border-surface-variant text-on-surface-variant group-hover:text-primary">11:50 AM</td>
+<td class="p-4 border-b border-surface-variant text-primary font-medium">#10039</td>
+<td class="p-4 border-b border-surface-variant text-on-surface">Mesa 02</td>
+<td class="p-4 border-b border-surface-variant">
+<span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant border border-surface-dim">Tarjeta</span>
+</td>
+<td class="p-4 border-b border-surface-variant text-right text-primary font-medium">$85.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+
+
+</body></html>

@@ -1,0 +1,172 @@
+# ARQUITECTURA — Santy POS
+
+> Sistema de Gestión de Restaurante y Reservas (POS + KDS + Reservas + Inventario + Fidelización)
+> Decisión registrada: **Django Full-Stack + Tailwind CSS** como frontend unificado.
+
+---
+
+## 1. Decisiones de arquitectura (ADR)
+
+### ADR-001 — Django Full-Stack (un solo framework para backend y frontend)
+
+**Contexto:** Proyecto personal unipersonal, desarrollado con asistencia de IA. El stack técnico fue definido por el cliente: Django + Supabase + Vercel.
+
+**Decisión:** Usar Django para backend **y** frontend mediante su motor de templates, con **Tailwind CSS** como sistema de estilos (diseño Stitch exacto). No se adopta un SPA (React/Next.js).
+
+**Consecuencias:**
+- Un solo lenguaje (Python) en todo el código → menos cambio de contexto en prompts de IA y mantenimiento.
+- Django Admin cubre la gestión CRUD operativa (inventario, usuarios, reportes).
+- El realtime se resuelve con **Django Channels** (WebSockets) + Supabase Realtime broadcast.
+- El frontend es renderizado server-side (HTML + Tailwind), no requiere Node en runtime (solo en build para Tailwind).
+
+### ADR-002 — Supabase como PostgreSQL + servicios auxiliares
+
+- **Base de datos:** PostgreSQL gestionado (ACID, respaldos automáticos RNF-12).
+- **RLS:** capa extra de seguridad por fila (complementa validación server-side RNF-02).
+- **Realtime:** publica cambios (estados de mesa, semáforo KDS) que Django Channels consume.
+- **Auth:** se usa el sistema de autenticación de Django (rol por modelo), NO Supabase Auth; esto evita duplicar la lógica de suspensión/bloqueo de 15 min / 5 fallos (RF-02/RF-03).
+- **Storage:** reportes PDF/Excel y archivos de auditoría.
+
+### ADR-003 — Vercel como plataforma de despliegue
+
+- Hosting de la app Django vía buildpack Python (`@vercel/python`) + `vercel.json`.
+- `build.sh` ejecuta: pip install → npm build (Tailwind) → collectstatic → migrate.
+- Los estáticos se comprimen con **WhiteNoise** (listos para Vercel/edge).
+
+### ADR-004 — Arquitectura modular por dominio (apps Django)
+
+Cada `app` es un bounded context del dominio, con acceso controlado entre ellas:
+
+| App | Dominio | Reglas críticas |
+|---|---|---|
+| `core` | Usuarios, roles, configuración de negocio | Suspensión 15 min, bloqueo 5 fallos, roles (RF-01..03, RF-34) |
+| `reservations` | Mesas, reservas, bloqueo de 2 min | Mínimo 12 h, bloques de 2 h, no-show 15 min, cancelación ≥ 4 h (RF-27..33) |
+| `kitchen` | Comandas, KDS, mermas | Semáforo <10/10-20/>20 min, merma con auditoría (RF-05, RF-06, RF-20..22) |
+| `billing` | Facturas, caja, cobros parciales | IVA 15%, cierre ciego ±2 USD, anulación solo Admin (RF-07..11, RF-25, RF-26) |
+| `inventory` | Insumos, fichas técnicas, recepciones | Costo promedio, habilitación por stock, correcciones aprobadas (RF-13, RF-14, RF-23, RF-24) |
+| `loyalty` | Puntos de fidelización | 1 pt/USD entero, canje 10 pts = $1, caducidad 3 meses (RF-15..17) |
+| `audit` | Bitácora inmutable y PIN | Log de operaciones críticas, PIN de 60 s un solo uso (RF-18, RF-19, RF-35) |
+
+> Los modelos de `reservations` referencian `kitchen.Dish` y `billing.Invoice` referencia `kitchen.Order`. Las dependencias cruzadas se mantienen al mínimo y por FK (no lógica compartida).
+
+---
+
+## 2. Seguridad y permisos (RNF-01, RNF-02)
+
+- **Contraseñas:** hasheadas por Django (PBKDF2/salt), nunca texto plano.
+- **Autorización en servidor:** decorador `login_required` + chequeo de rol en cada vista. La UI no es la única barrera.
+- **Cierre de sesión CSRF-protegido**.
+- **Bitácora inmutable:** `AuditLog` con campos `readonly` en Admin; los roles operativos no pueden editar/borrar.
+- **Rate-limit de login** (RF-02/RF-03) implementado en `core.models.User.record_failed_login()`.
+
+---
+
+## 3. Reglas de negocio invariables (BDD)
+
+| Invariante | Implementación |
+|---|---|
+| Zona horaria UTC-5 sin DST | `TIME_ZONE = "America/Panama"` en settings |
+| Moneda USD, 2 decimales | Campos `DecimalField(10, 2)` + `decimal_to_currency` en templates |
+| IVA 15% | Servicio en `billing` (`Invoice` calcula subtotal × 0.15 redondeado) |
+| Horario operativo 10:00–00:00 | `BusinessConfig.operating_start/end` |
+| Capacidades 2/4/6/12 | `choices` en `reservations.Table` |
+| Bloqueo de 2 min en reserva | `TableBlock.expires_at` + `with_for_update()` al confirmar |
+| Tolerancia cierre ±2,00 USD | `CashRegister.close_blind()` |
+| PIN 60 s un solo uso | `audit.PinToken.valid_until/consumed_at` |
+
+Los valores de negocio (IVA, tolerancias, minutos) son editables por el Administrador desde `BusinessConfig` (Admin Django), sin re-desplegar.
+
+---
+
+## 4. Realtime (KDS y estados de mesa)
+
+```
+Chef/Cajero/Mesero   →   Browser WebSocket  →  Django Channels (santy/routing.py)
+                                                 │
+                                                 ▼
+                                     serve/consume de Supabase Realtime
+                                     (broadcast de cambios de Order/Table)
+```
+
+- `santy/asgi.py` configura `ProtocolTypeRouter` (HTTP + WebSocket).
+- El consumer del KDS se implementa en `kitchen/consumers.py` (pendiente de código de cliente).
+
+---
+
+## 5. Estructura de carpetas
+
+```
+Restaurante_Santy/
+├── santy/                # Config: settings, urls, asgi, routing (WebSockets)
+├── core/                 # Usuarios, roles, BusinessConfig, login/dashboards
+├── reservations/         # Mesas, reservas, TableBlock (concurrencia)
+├── kitchen/              # Comandas, KDS, mermas, platillos
+├── billing/              # Cajas, facturas, IVA, cierres
+├── inventory/            # Insumos, fichas técnicas, recepciones, correcciones
+├── loyalty/              # Movimientos de puntos
+├── audit/                # AuditLog inmutable + PinToken
+├── templates/            # base.html (diseño Stitch) + partials
+│   └── core|audit|...    # Pantallas por módulo (Screen IDs de DESIGN.md)
+├── static/css/           # input.css (fuente Tailwind) → output.css (compilado)
+├── docs/BDD/             # Features Gherkin + DESIGN.md (Stitch)
+├── .env.example          # Plantilla para DATABASE_URL de Supabase
+├── vercel.json           # Despliegue Vercel
+├── build.sh              # Build pipeline Vercel
+└── requirements.txt      # Dependencias Python
+```
+
+---
+
+## 6. Pantallas del DISEÑO.md → templates
+
+| Screen ID | Ruta esperada |
+|---|---|
+| `login` | `templates/core/login.html` ✅ |
+| `admin_dashboard` | `templates/core/admin_dashboard.html` ✅ |
+| `waiter_floor_plan` | `templates/core/waiter_dashboard.html` (esqueleto) |
+| `waiter_order_creation` | futura |
+| `waiter_account_segmentation` | futura |
+| `waiter_checkin` | futura |
+| `kds_main` | `templates/core/chef_dashboard.html` (esqueleto) |
+| `kds_shrinkage` | futura |
+| `cashier_billing` | `templates/core/cashier_dashboard.html` (esqueleto) |
+| `cashier_cash_closing` | futura |
+| `inventory_dashboard` | `templates/core/warehouse_dashboard.html` (esqueleto) |
+| `reservation_portal_*` | futura |
+| `audit_trail` | `templates/audit/trail.html` ✅ |
+
+---
+
+## 7. Uso en desarrollo
+
+```bash
+# 1. Entorno e instalación
+python -m venv .venv
+.\.venv\Scripts\activate # Windows
+pip install -r requirements.txt
+npm install
+
+# 2. Configurar base de datos
+copy .env.example .env   # completar DATABASE_URL de Supabase (o dejar vacío → SQLite)
+
+# 3. Construir CSS (Tailwind)
+npm run build            # o npm run dev para watch
+
+# 4. Migrar y sembrar
+python manage.py migrate
+python manage.py seed    # create usuarios y BusinessConfig
+
+# 5. Ejecutar
+python manage.py runserver
+```
+
+**Usuarios de prueba (seed):** `admin@santy.com / admin`, `cajero@santy.com / cajero`, `mesero@santy.com / mesero`, `chef@santy.com / chef`, `bodega@santy.com / bodega`.
+
+---
+
+## 8. Pendientes (siguiente fase)
+
+- Mapear las 20+ pantallas Stitch restantes a templates (tabla §6).
+- `kitchen/consumers.py` + integración con Supabase Realtime para KDS/estados de mesa.
+- Vistas de facturación, cierre ciego, reservas (portal cliente) e inventario.
+- Tests de aceptación a partir de `docs/BDD/*.feature`.

@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Santy POS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="{% static 'css/output.css' %}" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-surface-bg font-sans text-text-primary">
+  {% block body %}
+
+  {% if user.is_authenticated %}
+  <div class="flex min-h-screen">
+    {% include "partials/sidebar.html" %}
+    <div class="flex flex-1 flex-col">
+      <main class="flex-1 p-6">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for message in messages %}
+          <div class="card flex items-center justify-between px-4 py-3 text-sm {% if message.tags == 'error' %}border-l-4 border-danger{% elif message.tags == 'success' %}border-l-4 border-primary{% else %}border-l-4 border-info{% endif %}">
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="border-t border-slate-200 px-6 py-3 text-xs text-text-secondary">
+        {% block footer %}
+        Zona horaria operativa: <span class="font-mono">UTC-5</span> · Moneda: <span class="font-mono">USD</span> · IVA 15%
+        {% endblock %}
+      </footer>
+    </div>
+  </div>
+  {% endif %}
+
+  {% endblock %}
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Staff Login - LUXE DINING</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#c8c6c7",
+                        "surface-container": "#f0eee9",
+                        "on-surface": "#1b1c19",
+                        "tertiary": "#000000",
+                        "primary": "#000000",
+                        "inverse-primary": "#c8c6c7",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#745c00",
+                        "surface-dim": "#dbdad5",
+                        "tertiary-container": "#1c1b19",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#eae8e3",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#e6e2de",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c7c6ca",
+                        "on-secondary-fixed": "#241a00",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#fbf9f4",
+                        "tertiary-fixed-dim": "#cac6c2",
+                        "surface-variant": "#e4e2dd",
+                        "secondary-container": "#fed65b",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#30312e",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#868380",
+                        "on-tertiary-fixed": "#1c1b19",
+                        "background": "#fbf9f4",
+                        "surface-tint": "#5f5e5f",
+                        "primary-container": "#1b1b1c",
+                        "surface-container-low": "#f5f3ee",
+                        "on-surface-variant": "#46474a",
+                        "on-primary-container": "#858384",
+                        "primary-fixed": "#e5e2e3",
+                        "on-primary-fixed": "#1b1b1c",
+                        "outline": "#76777b",
+                        "secondary": "#735c00",
+                        "on-secondary-fixed-variant": "#574500",
+                        "secondary-fixed": "#ffe088",
+                        "secondary-fixed-dim": "#e9c349",
+                        "on-tertiary-fixed-variant": "#484644",
+                        "on-background": "#1b1c19",
+                        "surface": "#fbf9f4",
+                        "inverse-on-surface": "#f2f1ec",
+                        "surface-container-highest": "#e4e2dd",
+                        "on-primary-fixed-variant": "#474647"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "headline-md": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-container text-on-surface font-body-md flex flex-col min-h-screen">
+<!-- TopNavBar (Suppressed Navigation Shell per Semantic Rule: Linear/Transactional) -->
+<header class="sticky top-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/95 backdrop-blur-sm bg-surface border-b border-outline-variant flat no shadows docked full-width top-0">
+<div class="font-display-lg text-display-lg text-primary tracking-tighter">LUXE DINING</div>
+<!-- Navigation links suppressed for login screen -->
+<div class="flex items-center gap-unit">
+<button class="px-4 py-2 font-label-md text-label-md bg-transparent text-primary border border-primary rounded hover:bg-surface-variant transition-colors duration-200">Member Login</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop relative overflow-hidden">
+<!-- Atmospheric Background Element -->
+<div class="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-multiply" data-alt="A subtle, abstract geometric pattern in shades of deep charcoal and warm gray, providing a sophisticated, textured backdrop suitable for a high-end corporate or luxury hospitality application. The pattern should be soft and unobtrusive, creating a sense of depth without distracting from foreground elements." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBLiKi4Mr5da5DY2eKSgvCY6yoWQqgXw9bDaTxEbLFM8bNj-MsLZ3BvYlMhLLCEp2O7Wq3wL95DkfslX3ac8K1hc_DdEwdNctlDw7n49qO0pvD7omceAuy9K6xLqZusPd5PpYRJxYZaDJap5F7I5yfmUGNVM6boxp_-TbiVjQRU9oHbonhtjh9GLJx4bEd7Iqi7RDeb8liGgGxX-8N6PAS280LfF32IpP2nWP5knBmRisxpMNpkffxc')"></div>
+<!-- Login Card -->
+<div class="relative z-10 w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-lg p-gutter shadow-[0_12px_24px_-12px_rgba(0,0,0,0.15)] flex flex-col gap-gutter">
+<div class="text-center mb-unit">
+<span class="material-symbols-outlined text-[48px] text-primary mb-2">lock</span>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-1">Staff Portal Access</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Authorized personnel only.</p>
+</div>
+<form class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface" for="staff-id">Staff ID or Email</label>
+<input class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="staff-id" placeholder="Enter your ID" type="text">
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface" for="password">Password</label>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" id="password" placeholder="Enter your password" type="password">
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded mt-2 hover:bg-tertiary-container transition-colors shadow-[0_2px_4px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.15)] active:scale-[0.98]" type="submit">
+                    Authenticate
+                </button>
+</form>
+<div class="text-center mt-2 border-t border-outline-variant pt-4">
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+                    Need IT Support? <a class="text-primary hover:underline" href="#">Contact Helpdesk</a>
+</p>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-margin-desktop grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter bg-tertiary-container border-t border-outline full-width bottom-0">
+<div class="font-headline-md text-headline-md text-on-tertiary col-span-1 md:col-span-2 lg:col-span-1">LUXE DINING</div>
+<ul class="flex flex-col gap-2 font-body-sm text-body-sm">
+<li class="text-on-tertiary-container">Operating Hours: 10:00 - 00:00</li>
+<li class="text-on-tertiary-container">Contact: +1 (555) 0123</li>
+</ul>
+<ul class="flex flex-col gap-2 font-body-sm text-body-sm">
+<li><a class="text-on-tertiary-container hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="text-on-tertiary-container hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a></li>
+</ul>
+<div class="font-body-sm text-body-sm text-on-tertiary-container col-span-1 md:col-span-2 lg:col-span-4 mt-4 pt-4 border-t border-outline-variant/30 text-center md:text-left">
+            © 2024 Luxe Dining Hospitality Group. All rights reserved.
+        </div>
+</footer>
+</body></html>

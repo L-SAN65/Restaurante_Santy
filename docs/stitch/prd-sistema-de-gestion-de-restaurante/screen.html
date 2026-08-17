@@ -1,0 +1,21 @@
+# PRD: Sistema de Gestión de Restaurante y Reservas
+
+## Contexto e Invariantes
+- **Zona Horaria:** UTC-5 (Invariable).
+- **Moneda:** USD (Dos decimales).
+- **Impuestos:** IVA 15% fijo.
+- **Horario Operativo:** 10:00 a 00:00.
+- **Seguridad:** Credenciales con hash/salt, validación en servidor.
+- **Capacidad de Mesas:** 2, 4, 6 y 12 personas.
+- **Reservas:** Mínimo 12 horas de anticipación.
+
+## Terminología de Estados
+- **Cuentas:** Activo, Suspendida (15 min), Bloqueada (Permanente).
+- **Mesas:** Disponible, Reservada, Ocupada.
+- **Cocina (KDS):** En Espera, En Preparación.
+- **Caja:** Abierta, Cerrada, Cuadrada (dif ≤ $2), Descuadre Pendiente (dif > $2).
+
+## Plan de Ejecución
+1. **Fase 1 (Actual):** Autenticación de Personal y Portal de Clientes.
+2. **Fase 2:** Módulo de Reservas (Validación de 12h y capacidad de mesas).
+3. **Fase 3:** Módulos de Gestión (Caja, KDS, Facturación, Inventario).

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Caja y Facturación · Santy{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-3xl font-semibold tracking-tight">Caja y Facturación</h1>
+<div class="grid gap-4 lg:grid-cols-3">
+  <div class="card p-4 lg:col-span-2">
+    <p class="text-sm text-text-secondary">Módulo de facturación y cobros (SCREEN: cashier_billing)</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Cierre / apertura de caja (SCREEN: cashier_cash_closing)</p>
+  </div>
+</div>
+{% endblock %}

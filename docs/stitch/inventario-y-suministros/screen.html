@@ -1,0 +1,384 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Inventario y Suministros - Luxe Dining</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#5f5e5f",
+                        "secondary-fixed-dim": "#e9c349",
+                        "surface-container-highest": "#e4e2dd",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#745c00",
+                        "on-primary-container": "#858384",
+                        "primary-container": "#1b1b1c",
+                        "tertiary-container": "#1c1b19",
+                        "primary-fixed-dim": "#c8c6c7",
+                        "primary-fixed": "#e5e2e3",
+                        "on-tertiary-container": "#868380",
+                        "on-background": "#1b1c19",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#fbf9f4",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#1b1b1c",
+                        "on-tertiary-fixed-variant": "#484644",
+                        "on-secondary-fixed-variant": "#574500",
+                        "outline-variant": "#c7c6ca",
+                        "inverse-on-surface": "#f2f1ec",
+                        "secondary-fixed": "#ffe088",
+                        "on-surface": "#1b1c19",
+                        "secondary-container": "#fed65b",
+                        "surface-container": "#f0eee9",
+                        "on-primary-fixed-variant": "#474647",
+                        "outline": "#76777b",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f4",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#cac6c2",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#eae8e3",
+                        "surface-variant": "#e4e2dd",
+                        "inverse-primary": "#c8c6c7",
+                        "surface-container-low": "#f5f3ee",
+                        "tertiary-fixed": "#e6e2de",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#1c1b19",
+                        "inverse-surface": "#30312e",
+                        "on-surface-variant": "#46474a",
+                        "on-secondary-fixed": "#241a00",
+                        "surface-dim": "#dbdad5",
+                        "background": "#fbf9f4",
+                        "tertiary": "#000000",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#735c00"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "container-max": "1440px",
+                        "margin-desktop": "40px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    fontFamily: {
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    fontSize: {
+                        "headline-md": ["24px", { lineHeight: "1.4", fontWeight: "500" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "1.3", fontWeight: "600" }],
+                        "label-sm": ["12px", { lineHeight: "1", fontWeight: "500" }],
+                        "display-lg": ["48px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "headline-lg": ["32px", { lineHeight: "1.3", fontWeight: "600" }],
+                        "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+                        "body-sm": ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+                        "label-md": ["14px", { lineHeight: "1", letterSpacing: "0.05em", fontWeight: "600" }]
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col fixed h-full w-64 left-0 top-0 bg-primary dark:bg-surface-container-lowest border-r border-outline-variant py-8 px-4 overflow-y-auto z-20">
+<div class="mb-8 px-4">
+<h1 class="text-headline-lg font-headline-lg font-bold text-secondary-fixed tracking-wide">Luxe Dining</h1>
+<p class="text-body-sm font-body-sm text-secondary-fixed dark:text-secondary-fixed-dim mt-1">Restaurant Management</p>
+</div>
+<button class="mb-8 mx-4 py-3 px-4 bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md flex justify-center items-center gap-2 hover:bg-secondary-fixed transition-colors shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+            New Reservation
+        </button>
+<div class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">event_seat</span>
+<span class="text-label-md font-label-md">Reservations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-label-md font-label-md">Table Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-label-md font-label-md">Menu Manager</span>
+</a>
+<!-- Inventory tab (Active - Intent Fallback since not explicitly in JSON but fits management context) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-fixed text-on-secondary-fixed rounded-lg font-semibold scale-[0.98] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="text-label-md font-label-md">Inventario</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="text-label-md font-label-md">Staff Portal</span>
+</a>
+</div>
+<div class="mt-auto space-y-2 pt-8 border-t border-surface-tint border-opacity-30">
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-fixed-variant hover:text-secondary-fixed transition-colors hover:bg-primary-container dark:hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="text-label-md font-label-md">Support</span>
+</a>
+<div class="mt-4 px-4 flex items-center gap-3">
+<img alt="Luxe Dining Admin Profile" class="w-10 h-10 rounded-full object-cover border border-outline-variant" data-alt="A small circular avatar placeholder for Luxe Dining Admin Profile. The image should be a professional, high-end headshot of a restaurant manager in soft, sophisticated lighting, fitting a luxury dining aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgROVxJgJH3fh341UflLtywI5elKeHnTeTSpnC3loYxqh-uPIVBft1xZLJkS_to6t1DHJPUhjdvSaD7VxLO2gXb6Qep1ipdeQ7_2fBfWXzDAClw1LHiJxygcIueHv79Im3YFCIuRGJCf-MXTIGLIPrvZcvJ0C_vFdAwE0l29vY66gQpWWW1Ruz-_kQIjBNUagQib9ooMqiyTGwH6T9MrDodXBUt17w9FAMFWPXPXezNsrfvg7LKiAB">
+</div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="hidden md:flex justify-between items-center px-10 h-16 ml-64 fixed top-0 right-0 w-[calc(100%-16rem)] bg-surface dark:bg-surface-dim border-b border-outline-variant z-10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-full text-body-sm font-body-sm focus:border-primary focus:ring-0 transition-colors" placeholder="Buscar en inventario..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">history</span>
+</button>
+</div>
+<button class="px-5 py-2 bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md hover:bg-secondary-fixed transition-colors shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
+                Complete Order
+            </button>
+<div class="border-l border-outline-variant pl-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary dark:text-on-surface opacity-80 transition-opacity cursor-pointer">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-16 min-h-screen p-8 md:p-10 max-w-[1440px] mx-auto">
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<h2 class="text-display-lg font-display-lg text-primary">Gestión de Inventario</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-2">Supervisión general de insumos y proveedores.</p>
+</div>
+<button class="px-6 py-3 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-surface-tint transition-colors shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+                Añadir Insumo
+            </button>
+</div>
+<!-- Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Total Items</span>
+<span class="text-headline-lg font-headline-lg text-primary">1,248</span>
+<div class="flex items-center gap-1 text-surface-tint text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +12 este mes
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-secondary p-6 rounded-xl flex flex-col gap-2 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-secondary opacity-10 rounded-bl-full"></div>
+<span class="text-label-md font-label-md text-secondary uppercase tracking-wider">Bajo Stock</span>
+<span class="text-headline-lg font-headline-lg text-secondary">24</span>
+<div class="flex items-center gap-1 text-secondary text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px]">warning</span> Requiere atención
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Pedidos Pendientes</span>
+<span class="text-headline-lg font-headline-lg text-primary">8</span>
+<div class="flex items-center gap-1 text-surface-tint text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span> 3 llegan hoy
+                </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Valor de Inventario</span>
+<span class="text-headline-lg font-headline-lg text-primary">$45.2K</span>
+<div class="flex items-center gap-1 text-surface-tint text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px]">account_balance_wallet</span> Valor estimado
+                </div>
+</div>
+</div>
+<!-- Main Layout: Table + Sidebar -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Inventory Table (Takes 2 columns) -->
+<div class="lg:col-span-2 flex flex-col gap-6">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+<h3 class="text-headline-md font-headline-md text-primary">Inventario Principal</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface">
+<th class="py-4 px-6 text-label-sm font-label-sm text-on-surface-variant font-medium">Insumo</th>
+<th class="py-4 px-6 text-label-sm font-label-sm text-on-surface-variant font-medium">Categoría</th>
+<th class="py-4 px-6 text-label-sm font-label-sm text-on-surface-variant font-medium">Stock Actual</th>
+<th class="py-4 px-6 text-label-sm font-label-sm text-on-surface-variant font-medium">Unidad</th>
+<th class="py-4 px-6 text-label-sm font-label-sm text-on-surface-variant font-medium">Estado</th>
+</tr>
+</thead>
+<tbody class="text-body-sm font-body-sm text-on-background">
+<tr class="border-b border-outline-variant border-opacity-50 hover:bg-[#F1EFE9] transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A small thumbnail image of a high-quality cut of Wagyu beef on a dark slate background. The lighting is dramatic, highlighting the marbling of the meat, suitable for a luxury restaurant inventory system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDIGkeUMv-UA3oKNL9ugNS90xcWoDz6gG6k9YuyKjgwZg2CSPESbHVZfJ-Wvhr3-G4PNqx70zj4ZtZ9IBDCZrqyrDqiBCn5WAnb7gbjvscnU6LUkArzrk6Bn5RZjYQvpIuBK6ojOJeJjpQzKLzGSOM8Fv63ddh9tdmnMTcUZwpid7GI-UT6w2G7h98SaO2rnPM9JU5CRnKQaEJyInE_K9msKHKBzGJxVs0HUsVbjJ3O6RKQTWpb_Dy">
+</div>
+<span class="font-medium text-primary">Wagyu A5 Ribeye</span>
+</td>
+<td class="py-4 px-6">Proteínas</td>
+<td class="py-4 px-6 font-medium">12.5</td>
+<td class="py-4 px-6 text-on-surface-variant">kg</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-label-sm font-label-sm">
+                                            En Stock
+                                        </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-50 hover:bg-[#F1EFE9] transition-colors bg-surface-container-low">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded border border-outline-variant overflow-hidden bg-surface-dim flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">wine_bar</span>
+</div>
+<span class="font-medium text-primary">Dom Pérignon 2012</span>
+</td>
+<td class="py-4 px-6">Bodega</td>
+<td class="py-4 px-6 font-medium text-secondary">3</td>
+<td class="py-4 px-6 text-on-surface-variant">botellas</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm border border-secondary">
+                                            Stock Bajo
+                                        </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-50 hover:bg-[#F1EFE9] transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A small thumbnail image of fresh truffles in a rustic wooden bowl. The lighting is soft and focused, emphasizing the texture of the truffles, fitting a high-end culinary inventory context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTC2CD8PsortZEP2zqCXGr8NWQXL4DZYiMelTfP1yphk_kbbjl0T2c2G8T1YBASx7PVaf3Lkg0EDFg_l4gtcBC-v7nPmMW_Hpafe1O_u3GVJBxBXuWoHoT8okS2v5CG2biYSbUqdDths9O-YhedqyhXJMDp9zSqIryoK2Lhd2KyIrjplX4HpOgRds08wIvsdB_zaE5w4i1bVbtK4uGceVdPtU4L5_1gcMXpYUyV8k7WMpL6py0Eciv">
+</div>
+<span class="font-medium text-primary">Trufa Negra Fresca</span>
+</td>
+<td class="py-4 px-6">Vegetales</td>
+<td class="py-4 px-6 font-medium">0.8</td>
+<td class="py-4 px-6 text-on-surface-variant">kg</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm border border-secondary">
+                                            Stock Bajo
+                                        </span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-50 hover:bg-[#F1EFE9] transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded border border-outline-variant overflow-hidden bg-surface-dim flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">set_meal</span>
+</div>
+<span class="font-medium text-primary">Caviar Beluga Oscetra</span>
+</td>
+<td class="py-4 px-6">Bodega</td>
+<td class="py-4 px-6 font-medium">5</td>
+<td class="py-4 px-6 text-on-surface-variant">packs (50g)</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-label-sm font-label-sm">
+                                            En Stock
+                                        </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-outline-variant flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span>Mostrando 1-4 de 1,248</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-outline-variant rounded hover:bg-surface transition-colors">Anterior</button>
+<button class="px-3 py-1 border border-outline-variant rounded hover:bg-surface transition-colors">Siguiente</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Alerts & Suppliers -->
+<div class="flex flex-col gap-6">
+<!-- Low Stock Alert Panel -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-[0_12px_24px_rgba(0,0,0,0.05)] relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">error</span>
+<h3 class="text-headline-md font-headline-md text-primary">Alertas de Stock</h3>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center p-3 bg-surface rounded-lg border border-outline-variant border-opacity-50">
+<div>
+<p class="text-body-sm font-body-sm font-medium text-primary">Dom Pérignon 2012</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Stock: 3 (Mínimo: 6)</p>
+</div>
+<button class="text-secondary text-label-sm font-label-sm font-semibold hover:underline">Reordenar</button>
+</div>
+<div class="flex justify-between items-center p-3 bg-surface rounded-lg border border-outline-variant border-opacity-50">
+<div>
+<p class="text-body-sm font-body-sm font-medium text-primary">Trufa Negra Fresca</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Stock: 0.8kg (Mínimo: 1.5kg)</p>
+</div>
+<button class="text-secondary text-label-sm font-label-sm font-semibold hover:underline">Reordenar</button>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-secondary text-secondary rounded-lg font-label-md text-label-md hover:bg-secondary hover:text-white transition-colors">
+                        Ver todas las alertas
+                    </button>
+</div>
+<!-- Suppliers Quick View -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6">
+<h3 class="text-headline-md font-headline-md text-primary mb-4">Proveedores Principales</h3>
+<div class="space-y-4">
+<div class="flex gap-4 items-start border-b border-outline-variant border-opacity-50 pb-4">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-headline-md text-headline-md">
+                                E
+                            </div>
+<div class="flex-1">
+<p class="text-body-sm font-body-sm font-medium text-primary">Elite Meats Co.</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Proteínas Premium</p>
+<div class="mt-2 flex items-center gap-2 text-label-sm font-label-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-[#2E7D32]"></span>
+<span>Pedido en camino (Hoy)</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 items-start pb-2">
+<div class="w-10 h-10 rounded-full bg-surface-dim text-on-surface-variant flex items-center justify-center font-headline-md text-headline-md">
+                                V
+                            </div>
+<div class="flex-1">
+<p class="text-body-sm font-body-sm font-medium text-primary">Vinos Vintners Ltd.</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Bodega y Licores</p>
+<div class="mt-2 flex items-center gap-2 text-label-sm font-label-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-surface-tint"></span>
+<span>Sin pedidos activos</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
