@@ -1,0 +1,274 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Luxe Dining - Digital Receipt</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dbdad5",
+                        "secondary-fixed": "#ffe088",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#574500",
+                        "outline-variant": "#c7c6ca",
+                        "background": "#fbf9f4",
+                        "tertiary-container": "#1c1b19",
+                        "tertiary-fixed-dim": "#cac6c2",
+                        "inverse-surface": "#30312e",
+                        "primary-fixed-dim": "#c8c6c7",
+                        "primary-container": "#1b1b1c",
+                        "on-secondary-container": "#745c00",
+                        "surface-container-low": "#f5f3ee",
+                        "surface": "#fbf9f4",
+                        "primary-fixed": "#e5e2e3",
+                        "outline": "#76777b",
+                        "on-surface-variant": "#46474a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#858384",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#c8c6c7",
+                        "surface-container-highest": "#e4e2dd",
+                        "on-tertiary-fixed": "#1c1b19",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#474647",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#1b1b1c",
+                        "surface-bright": "#fbf9f4",
+                        "on-tertiary-fixed-variant": "#484644",
+                        "secondary": "#735c00",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#e6e2de",
+                        "tertiary": "#000000",
+                        "surface-container-high": "#eae8e3",
+                        "primary": "#000000",
+                        "inverse-on-surface": "#f2f1ec",
+                        "on-secondary-fixed": "#241a00",
+                        "on-tertiary-container": "#868380",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#5f5e5f",
+                        "secondary-fixed-dim": "#e9c349",
+                        "surface-container": "#f0eee9",
+                        "secondary-container": "#fed65b",
+                        "on-background": "#1b1c19",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1b1c19",
+                        "surface-variant": "#e4e2dd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Playfair Display"],
+                        "label-sm": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .receipt-paper {
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E5E1D8;
+            position: relative;
+        }
+        .receipt-paper::before, .receipt-paper::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background-size: 16px 16px;
+        }
+        .receipt-paper::before {
+            top: -4px;
+            background-image: radial-gradient(circle at 8px 0, transparent 8px, #ffffff 9px);
+        }
+        .receipt-paper::after {
+            bottom: -4px;
+            background-image: radial-gradient(circle at 8px 16px, transparent 8px, #ffffff 9px);
+        }
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .receipt-paper { box-shadow: none; border: none; margin: 0; }
+            .receipt-paper::before, .receipt-paper::after { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col items-center justify-center py-12 px-margin-mobile md:px-margin-desktop">
+<!-- Top Navigation (Shell suppressed for this focused transactional view, but provided as semantic reference if needed) -->
+<nav aria-label="Suppressed Navigation" class="hidden"></nav>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-md mx-auto">
+<!-- Action Bar (No-Print) -->
+<div class="flex justify-between items-center mb-6 no-print">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors bg-transparent border border-outline px-4 py-2 rounded-lg font-label-md text-label-md">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+                Back
+            </button>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 bg-transparent border border-primary text-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-container-low transition-colors" onclick="window.print()">
+<span class="material-symbols-outlined" data-icon="print">print</span>
+                    Print Receipt
+                </button>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+                    Email
+                </button>
+</div>
+</div>
+<!-- Receipt Container -->
+<div class="receipt-paper rounded-lg px-8 py-10 w-full relative z-10">
+<!-- Header -->
+<div class="text-center mb-8 border-b border-surface-variant pb-8 border-dashed">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight mb-2">Luxe Dining</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">123 Culinary Avenue, Suite 400</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gastronomy District, NY 10001</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">VAT: #LUX-987654321</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tel: +1 (555) 019-8472</p>
+</div>
+<!-- Transaction Details -->
+<div class="grid grid-cols-2 gap-y-2 mb-8 font-body-sm text-body-sm border-b border-surface-variant pb-8 border-dashed">
+<div class="text-on-surface-variant">Date:</div>
+<div class="text-right text-on-surface">Oct 24, 2023</div>
+<div class="text-on-surface-variant">Time:</div>
+<div class="text-right text-on-surface">21:45 PM</div>
+<div class="text-on-surface-variant">Order #:</div>
+<div class="text-right text-on-surface font-label-md text-label-md">#4092-B</div>
+<div class="text-on-surface-variant">Cashier:</div>
+<div class="text-right text-on-surface">E. Bennett</div>
+<div class="text-on-surface-variant">Table:</div>
+<div class="text-right text-on-surface">14 (Dining Room)</div>
+</div>
+<!-- Itemized List -->
+<div class="mb-8">
+<div class="grid grid-cols-[3fr_1fr_1fr] gap-4 mb-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest border-b border-surface-variant pb-2">
+<div>Item</div>
+<div class="text-right">Qty</div>
+<div class="text-right">Price</div>
+</div>
+<div class="space-y-4 font-body-sm text-body-sm">
+<!-- Item 1 -->
+<div class="grid grid-cols-[3fr_1fr_1fr] gap-4 items-start">
+<div>
+<div class="text-on-surface font-medium">Truffle Risotto</div>
+<div class="text-on-surface-variant text-[12px] italic">No mushrooms</div>
+</div>
+<div class="text-right text-on-surface-variant">1</div>
+<div class="text-right text-on-surface">$42.00</div>
+</div>
+<!-- Item 2 -->
+<div class="grid grid-cols-[3fr_1fr_1fr] gap-4 items-start">
+<div>
+<div class="text-on-surface font-medium">Wagyu Ribeye (8oz)</div>
+<div class="text-on-surface-variant text-[12px] italic">Medium Rare</div>
+</div>
+<div class="text-right text-on-surface-variant">1</div>
+<div class="text-right text-on-surface">$85.00</div>
+</div>
+<!-- Item 3 -->
+<div class="grid grid-cols-[3fr_1fr_1fr] gap-4 items-start">
+<div>
+<div class="text-on-surface font-medium">Château Margaux 2015</div>
+<div class="text-on-surface-variant text-[12px] italic">Glass</div>
+</div>
+<div class="text-right text-on-surface-variant">2</div>
+<div class="text-right text-on-surface">$120.00</div>
+</div>
+<!-- Item 4 -->
+<div class="grid grid-cols-[3fr_1fr_1fr] gap-4 items-start">
+<div>
+<div class="text-on-surface font-medium">Dark Chocolate Tart</div>
+</div>
+<div class="text-right text-on-surface-variant">1</div>
+<div class="text-right text-on-surface">$18.00</div>
+</div>
+</div>
+</div>
+<!-- Financials -->
+<div class="border-t border-surface-variant pt-6 border-dashed mb-8">
+<div class="space-y-2 font-body-sm text-body-sm">
+<div class="flex justify-between text-on-surface-variant">
+<span>Subtotal</span>
+<span>$265.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>VAT (15%)</span>
+<span>$39.75</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Service Charge (Optional)</span>
+<span>$0.00</span>
+</div>
+<div class="flex justify-between items-center mt-4 pt-4 border-t border-surface-variant font-headline-md text-headline-md text-primary">
+<span>Total</span>
+<span>$304.75</span>
+</div>
+</div>
+</div>
+<!-- Payment Info -->
+<div class="bg-surface-container-low rounded p-4 mb-8">
+<div class="flex justify-between items-center font-body-sm text-body-sm">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined" data-icon="credit_card">credit_card</span>
+                        Visa ending in 4242
+                    </div>
+<div class="text-on-surface-variant">Paid</div>
+</div>
+<div class="flex justify-between items-center mt-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>Auth Code: X7B9Q2</span>
+<span>EMV Contactless</span>
+</div>
+</div>
+<!-- Footer & QR -->
+<div class="text-center">
+<div class="w-32 h-32 mx-auto mb-4 bg-surface-container-high rounded flex items-center justify-center p-2">
+<img class="w-full h-full object-contain mix-blend-multiply opacity-80" data-alt="A high-contrast, perfectly square QR code rendered in stark black and white, centered within a light gray container. The aesthetic is clean, digital, and modern, fitting a luxury restaurant's digital receipt system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOXE5GgWovRen_1nwfY0Sb_HaTg_Gmg0QEDmpZsjzmSVOJRicHp-J27v2vGjFBzEYJw6wRr3Gafu1LcMkgtVmvzItiTpvC1tlyGL7LH9pmWBbRcGWN87DM7IftFZheac0tTS2d38MQwk280vLYWZ72LC7l0T6fnNYuLXSy_bpPHLWnEBTkxEHKOodzX3MBu3VhTBqf6sSFWQYdIyptAXEvracN1sPEzOQuJIKkKtKrWI68QGfO8vBc">
+</div>
+<p class="font-headline-md text-headline-md text-primary mb-2">Thank you</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Scan to view digital receipt or leave feedback.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-4 opacity-50">LXD-R-4092-B-20231024</p>
+</div>
+</div>
+</main>
+</body></html>

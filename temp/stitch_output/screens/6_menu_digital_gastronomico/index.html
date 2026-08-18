@@ -1,0 +1,418 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Luxe Dining - Menú</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#735c00",
+                    "secondary-fixed": "#ffe088",
+                    "tertiary-container": "#1c1b19",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#000000",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e4e2dd",
+                    "on-secondary-container": "#745c00",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#f5f3ee",
+                    "on-primary-container": "#858384",
+                    "on-tertiary-fixed-variant": "#484644",
+                    "on-secondary-fixed": "#241a00",
+                    "primary": "#000000",
+                    "secondary-container": "#fed65b",
+                    "on-primary-fixed": "#1b1b1c",
+                    "outline": "#76777b",
+                    "surface-bright": "#fbf9f4",
+                    "primary-fixed-dim": "#c8c6c7",
+                    "surface-tint": "#5f5e5f",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#e6e2de",
+                    "on-tertiary-fixed": "#1c1b19",
+                    "surface-container-high": "#eae8e3",
+                    "tertiary-fixed-dim": "#cac6c2",
+                    "secondary-fixed-dim": "#e9c349",
+                    "on-tertiary-container": "#868380",
+                    "inverse-on-surface": "#f2f1ec",
+                    "error": "#ba1a1a",
+                    "on-surface": "#1b1c19",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#e5e2e3",
+                    "on-primary": "#ffffff",
+                    "on-background": "#1b1c19",
+                    "primary-container": "#1b1b1c",
+                    "inverse-primary": "#c8c6c7",
+                    "inverse-surface": "#30312e",
+                    "surface-dim": "#dbdad5",
+                    "outline-variant": "#c7c6ca",
+                    "surface": "#fbf9f4",
+                    "on-surface-variant": "#46474a",
+                    "on-secondary-fixed-variant": "#574500",
+                    "on-tertiary": "#ffffff",
+                    "background": "#fbf9f4",
+                    "surface-variant": "#e4e2dd",
+                    "surface-container": "#f0eee9",
+                    "on-primary-fixed-variant": "#474647"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "8px",
+                    "margin-desktop": "40px",
+                    "container-max": "1440px"
+            },
+            "fontFamily": {
+                    "headline-md": [
+                            "Playfair Display"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Playfair Display"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "display-lg": [
+                            "Playfair Display"
+                    ],
+                    "headline-lg-mobile": [
+                            "Playfair Display"
+                    ]
+            },
+            "fontSize": {
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Smooth scrolling for anchor links */
+        html { scroll-behavior: smooth; }
+        
+        /* Custom dotted leader for menu items */
+        .menu-leader {
+            border-bottom: 1px dotted theme('colors.outline-variant');
+            flex-grow: 1;
+            margin: 0 12px;
+            position: relative;
+            top: -6px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface border-b border-surface-variant z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 max-w-container-max mx-auto">
+<!-- Brand -->
+<div class="font-headline-lg text-headline-lg text-primary tracking-tight">
+                Luxe Dining
+            </div>
+<!-- Navigation (Desktop) -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary border-b-2 border-secondary font-bold pb-1 font-label-md text-label-md transition-all duration-200 hover:bg-surface-container-low px-2 rounded-t" href="#">Menu</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:bg-surface-container-low px-2 py-1 rounded" href="#">About</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:bg-surface-container-low px-2 py-1 rounded" href="#">Locations</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="hidden md:block bg-transparent text-primary border border-primary px-4 py-2 rounded font-label-sm text-label-sm hover:bg-surface-container-low transition-colors">Staff Portal</button>
+<button class="bg-tertiary text-on-tertiary px-6 py-3 rounded font-label-md text-label-md shadow-sm hover:shadow-md hover:-translate-y-px transition-all">Make a Reservation</button>
+</div>
+</div>
+</header>
+<!-- Page Header / Hero -->
+<section class="w-full bg-surface-container-low py-16 md:py-24 border-b border-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<!-- Subtle abstract pattern or texture could go here, using a gradient for now to keep it clean -->
+<div class="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant to-transparent"></div>
+</div>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center relative z-10">
+<h1 class="font-display-lg text-display-lg md:text-[64px] text-primary mb-4">Nuestro Menú</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Una experiencia culinaria refinada, elaborada con los ingredientes más excepcionales de todo el mundo.</p>
+</div>
+</section>
+<!-- Main Content Area -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 flex flex-col md:flex-row gap-gutter relative">
+<!-- Sticky Sidebar Navigation -->
+<aside class="md:w-1/4 md:pr-8 hidden md:block">
+<div class="sticky top-28 bg-surface border border-surface-variant rounded-lg p-6 shadow-sm">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6">Categorías</h3>
+<ul class="space-y-4 flex flex-col">
+<li><a class="font-label-md text-label-md text-primary hover:text-secondary transition-colors inline-block w-full" href="#entradas">Entradas</a></li>
+<li><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors inline-block w-full" href="#platos-fuertes">Platos Fuertes</a></li>
+<li><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors inline-block w-full" href="#postres">Postres</a></li>
+<li><a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors inline-block w-full" href="#vinos-cocteles">Vinos y Cocteles</a></li>
+</ul>
+</div>
+</aside>
+<!-- Menu Sections -->
+<div class="md:w-3/4 flex flex-col gap-16">
+<!-- ENTRADAS -->
+<section class="scroll-mt-28" id="entradas">
+<h2 class="font-headline-lg text-headline-lg text-primary border-b border-surface-variant pb-4 mb-8">Entradas</h2>
+<div class="flex flex-col gap-12">
+<!-- Item -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img alt="Ostras Rockefeller" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt1rUHKYZLKPOzlw1nrroS-qIXSL1R3ZNXwSqafXHU7hVvWYB5B1KFVl9kkNTwQJpP1S_Cp2y1RcrEaHxwgjQoiOwr_3QYU4p7LqELXWqiLSPr_I4Vv2JBKHBm8VOY_Kqoy-noTSZVg7PdhOQVTYCbGT2YP5R__hXr-_eyJnlp4STN578Cucrx8jZGBX9Lu-mV67r6Zv3YKwGrBUVjgfZ5dra9bVUcmGASIfTNoR1QNb7Pb95L-woN">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Ostras Rockefeller</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$28</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Ostras frescas horneadas con una rica crema de espinacas, pernod y un toque de parmesano crujiente.</p>
+</div>
+</div>
+<!-- Item -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img alt="Carpaccio de Res Curado" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhfVL9WjCgBkfabqjyjtZTAvDGjwIwBc72E9sh8DORksD4lVifBVMRcuCJGQC61oNCbGnAgQGkfGbaBEKpAyAS5_pTy2vIQ6OBONeFqULMdi_64EOh1Vyvqu8hmd3euvONzZh1B4SsX1F8lB8zwt3WU15hEGelRqG-mZKyeZGyO4hMLaTEkc51WazronE311JP2nLDC_B3fY0Z7glQ1folWM4UMbbRBE2JSgv-FXh0NHakKJoAT_Lb">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Carpaccio de Res Curado</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$24</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Finas láminas de res añejada, alcaparras crujientes, emulsión de mostaza artesanal y micro rúcula.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- PLATOS FUERTES (Featured Items) -->
+<section class="scroll-mt-28" id="platos-fuertes">
+<h2 class="font-headline-lg text-headline-lg text-primary border-b border-surface-variant pb-4 mb-8">Platos Fuertes</h2>
+<div class="flex flex-col gap-12">
+<!-- Featured Dish: Wagyu -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" data-alt="A perfectly seared Wagyu A5 Ribeye steak, sliced to reveal a deep ruby red center with intricate marbling, resting on a dark slate plate. Accompanied by a sprig of fresh rosemary and a subtle drizzle of reduction sauce. The lighting is moody and dramatic, highlighting the texture of the meat against a minimalist, high-end restaurant setting. The visual style is hyper-realistic luxury food photography with warm ambient lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGAgPLb7xrDoU1fPbr5_xW752AlIEF9JnjJveuy_FZmLvgqNCO2keok3EXmc9PFzQtP0kelsc8o8PIvwo20_GQeHtS1WMqz4GQZT6aqOILF3EHd7oabBjPt2r4RznRIdiEeE5ZkWOmT_fFtY_hM7Ggi4M1-jb4Q6PA4k630ZuTQVngdIwnrgzAyayKuQUvWoCijlkNggDpGNwa_grtmr8V9lcCzJ096OYtV7ABS8924yH5L8B0XnC1">
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur px-3 py-1 rounded font-label-sm text-label-sm text-primary uppercase tracking-wider">Especialidad</div>
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Wagyu A5 Ribeye</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$145</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">El corte más exclusivo de Japón, conocido por su marmoleo inigualable. Sellado a la perfección, servido con sal marina en escamas y puré de papas trufado. Una experiencia que se deshace en el paladar.</p>
+<button class="text-secondary font-label-sm text-label-sm uppercase tracking-wider hover:text-primary transition-colors flex items-center gap-1">
+                                Notas del Chef <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Featured Dish: Trufa -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" data-alt="A handmade tagliatelle pasta dish elegantly twirled in a wide rimmed white ceramic bowl, generously topped with shaved fresh black truffles. A soft, warm directional light illuminates the earthy tones of the truffles and the golden hue of the freshly made egg pasta. The background is slightly out of focus, showing a glimpse of a fine dining table setting with crystal glassware on a crisp white tablecloth. The mood is sophisticated and culinary-focused, adhering to a bright minimalist luxury aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlh-mYAf6LjDKRx95J5FvinWfaI4RAapSBIdFzOzfCXXsKkSZJyMtKABWsHzfGKcLfQR_1UEXw90TXHJo7xIY1v8eLzOfgy_A9u1J3xK7TA3fqX3R3W3lrtbR0gOoI7AfTfFVsO9zk3aZVmINUdFU7x47-V0vz5qHG6r0u2BGUO5rjbPaO3EnrTL-e1-GFi2a7ERk4ApecdTX_qmP8chqtLje1KPGSIhW6n65etWL0fdVuxAhsovqD">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Tagliatelle con Trufa Negra Fresca</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$85</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Pasta artesanal hecha a mano diariamente, envuelta en una delicada emulsión de mantequilla de Normandía y parmesano Reggiano de 36 meses. Coronada generosamente en la mesa con trufa negra fresca rallada.</p>
+</div>
+</div>
+<!-- Item -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img alt="Lubina Chilena Glaseada" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH8WlQ2WfRV3QmtwHLmH-mUaHdx6VHW7ofq1f1ULVCRuKUAITz7ZZA0hUFKK0BkFJe9Dsu4ez25JgD931QmovqSpiobS9ZCrsvFXdGXd1PUjOajNQHTAv9RXzaFOW70l940djEiQ1MIMEYe3Hv7DjicmyMPYah97DZdjyJGbGC2XxKaX3uG_6XCDTcqJ8rR-84A6t8KstxHiI1u7JbrbqiB26v6PWTwyeucaY4_hi0w56CBjI-RPcC">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Lubina Chilena Glaseada</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$52</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Pescado blanco de textura mantecosa, glaseado con miso blanco y yuzu, acompañado de bok choy asado y caldo dashi ligero.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- POSTRES -->
+<section class="scroll-mt-28" id="postres">
+<h2 class="font-headline-lg text-headline-lg text-primary border-b border-surface-variant pb-4 mb-8">Postres</h2>
+<div class="flex flex-col gap-12">
+<!-- Dessert Item -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img alt="Esfera de Chocolate Valrhona" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT2z7Snm5rZ4f0jX7SZiYtyJyIY-k4YtuaQ8PeX9kTGOGJzAtTENDn4arq8IbvRd14sOtsXmBu6QoNcGsrjHjRt8-_Bc8DBEBd9Z3BLp3caYWXts87ZCJO0id--0ZrqUesO3-BIxxB3rC9cg4r3JrArES35uLGQKBtde176RohlCKk6jQj3csZBCsUEJ5J2EXIFTmSuO8UlWW-QWax8aokDmNfkI-70smMa4mx1c7i4-UK9XKygZZd">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Esfera de Chocolate Valrhona</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$22</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Mousse de chocolate negro al 70%, centro líquido de maracuyá, polvo de oro comestible.</p>
+</div>
+</div>
+<!-- Dessert Item -->
+<div class="bg-surface rounded-lg border border-surface-variant overflow-hidden group hover:shadow-md transition-shadow duration-300">
+<div class="h-64 md:h-80 w-full overflow-hidden relative">
+<img alt="Milhojas de Vainilla de Tahití" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrUhLAA2jy6nm00z2ZsxCcvcUahxvgXQxGaZ5MnE7Tqg-6afFYhr4b8SrE6LItsQWNHoYkGT4uK69ZLL4wqnSn8fVkO3P4qo4ObJfeAdw37dv4NpqGoPWr_BcQFdLKnFlvNpt1Bj5yNDTcAEBtRE1y_1uQTIhjiu5vZ6xjT4d7ldgmdXm6l5SfBUd5X4l5dHT2d3r0O4TGBPG5VVj_b8GB5q_UWi0w-aZDlvVOfaewh0apdFR2rtil">
+</div>
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Milhojas de Vainilla de Tahití</h3>
+<span class="font-label-md text-label-md text-secondary mt-1">$18</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Capas de hojaldre ultra fino caramelizado, crema diplomática infusionada con vainas de vainilla fresca.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- VINOS Y COCTELES -->
+<section class="scroll-mt-28 mb-12" id="vinos-cocteles">
+<h2 class="font-headline-lg text-headline-lg text-primary border-b border-surface-variant pb-4 mb-8">Vinos y Cocteles</h2>
+<div class="flex flex-col gap-8">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-4">Coctelería de Autor</h3>
+<div class="flex flex-col gap-6">
+<div class="group">
+<div class="flex justify-between items-baseline mb-1">
+<h4 class="font-headline-md text-headline-md text-primary text-[18px]">Humo y Espejos</h4>
+<div class="menu-leader"></div>
+<span class="font-label-md text-label-md text-secondary">$20</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mezcal artesanal, licor de chile ancho, jugo de lima fresco, sirope de agave y borde de sal de chapulín.</p>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-surface-variant">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-4">Vinos por Copa</h3>
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-center group">
+<span class="font-body-md text-body-md text-primary">Chardonnay, Napa Valley, 2021</span>
+<span class="font-label-md text-label-md text-secondary">$25</span>
+</div>
+<div class="flex justify-between items-center group">
+<span class="font-body-md text-body-md text-primary">Pinot Noir, Burgundy, 2019</span>
+<span class="font-label-md text-label-md text-secondary">$32</span>
+</div>
+<div class="flex justify-between items-center group">
+<span class="font-body-md text-body-md text-primary">Cabernet Sauvignon, Bordeaux, 2015</span>
+<span class="font-label-md text-label-md text-secondary">$45</span>
+</div>
+</div>
+<div class="mt-6 text-center">
+<button class="bg-transparent border border-outline-variant text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm hover:border-primary hover:text-primary transition-colors">Ver Carta de Vinos Completa</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-auto bg-surface-container-highest border-t border-surface-variant">
+<div class="flex flex-col md:flex-row justify-between items-center py-12 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto gap-8 md:gap-0">
+<!-- Brand -->
+<div class="font-headline-md text-headline-md text-primary">
+                Luxe Dining
+            </div>
+<!-- Links -->
+<nav class="flex flex-wrap justify-center gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:underline font-label-sm text-label-sm" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:underline font-label-sm text-label-sm" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:underline font-label-sm text-label-sm" href="#">Accessibility</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:underline font-label-sm text-label-sm" href="#">Contact Us</a>
+</nav>
+<!-- Copyright -->
+<div class="text-on-surface font-body-sm text-body-sm text-center md:text-right">
+                © 2024 Luxe Dining. Excellence in Hospitality.
+            </div>
+</div>
+</footer>
+</body></html>
