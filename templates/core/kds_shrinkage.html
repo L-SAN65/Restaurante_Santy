@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Mermas · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Gestión de Mermas</h1>
+  <button class="btn-secondary" onclick="window.history.back()">Volver</button>
+</div>
+
+<form class="space-y-4" id="shrinkage-form">
+  <div>
+    <label for="dish-select" class="label">Platillo</label>
+    <select id="dish-select" name="dish" class="input" required>
+      <option value="">Seleccionar platillo</option>
+      {% for dish in dishes %}
+      <option value="{{ dish.id }}">{{ dish.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label for="merma-amount" class="label">Cantidad mermada</label>
+    <input type="number" id="merma-amount" name="merma_amount" class="input" step="0.01" min="0" required>
+  </div>
+
+  <div>
+    <label for="merma-reason" class="label">Motivo de merma</label>
+    <select id="merma-reason" name="merma_reason" class="input" required>
+      <option value="">Seleccionar motivo</option>
+      <option value="producto_quemado">Producto quemado</option>
+      <option value="vencido">Vencido</option>
+      <option value="robado">Robado</option>
+      <option value="otro">Otros</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="merma-observations" class="label">Observaciones</label>
+    <textarea id="merma-observations" name="merma_observations" rows="3" class="input placeholder-text-sm"></textarea>
+  </div>
+
+  <div class="mt-4 flex justify-between">
+    <div>
+      <p class="text-sm text-text-secondary">Cargo original</p>
+      <p class="text-2xl font-semibold tabular-nums" id="original-charge">$0.00</p>
+    </div>
+    <div>
+      <p class="text-sm text-text-secondary">IVA 15%</p>
+      <p class="text-2xl font-semibold tabular-nums" id="original-iva">$0.00</p>
+    </div>
+  </div>
+
+  <button type="submit" class="btn-primary w-full mt-4">Registrar Merma y Alertar Mesero</button>
+</form>
+
+<div class="mt-6 p-4 rounded-card border" id="shrinkage-history">
+  <p class="text-sm text-text-secondary">Historial reciente de mermas</p>
+  <div id="merma-list" class="space-y-2 max-h-80 overflow-y-auto">
+    <!-- History rendered by JS -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('shrinkage-form');
+  
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const dish = document.getElementById('dish-select').value;
+      const amount = parseFloat(document.getElementById('merma-amount').value) || 0;
+      const reason = document.getElementById('merma-reason').value;
+      const observations = document.getElementById('merma-observations').value;
+      
+      if (!dish || !reason) {
+        alert('Por favor complete todos los campos obligatorios');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/shrinkage/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+          },
+          body: JSON.stringify({
+            dish_id: dish,
+            amount: amount,
+            reason: reason,
+            observations: observations
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Merma registrada exitosamente:\n' +
+            `Platillo: ${data.dish_name}\n` +
+            `Cargo original: $${data.original_charge.toFixed(2)}\n` +
+            `Motivo: ${data.reason}\n` +
+            `Alerta enviada al mesero`);
+          
+          // Reset form
+          form.reset();
+          loadShrinkageHistory();
+        } else {
+          alert('Error: ' + (data.detail || 'Error desconocido'));
+        }
+      } catch (error) {
+        alert('Error de conexión: ' + error.message);
+      }
+    });
+  }
+  
+  const loadShrinkageHistory = async () => {
+    try {
+      const response = await fetch('/api/shrinkage/history/');
+      const history = await response.json();
+      
+      const container = document.getElementById('merma-list');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-card border';
+        div.innerHTML = `
+          <p class="font-medium text-text-primary">Platillo: ${item.dish_name}</p>
+          <p class="text-xs text-text-secondary">Motivo: ${item.reason}</p>
+          <p class="text-xs text-text-secondary mt-1">Cargo: $${item.original_charge.toFixed(2)} | IVA: $${item.iva_charge.toFixed(2)}</p>
+          <p class="text-xs text-text-secondary mt-2">Registrado: ${item.formatted_date}</p>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      console.error('Error loading shrinkage history:', error);
+    }
+  };
+  
+  loadShrinkageHistory();
+  
+  const getCSRFToken = () => {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const parts = cookie.trim().split('=');
+      if (parts[0] === 'csrftoken') {
+        return parts[1];
+      }
+    }
+    return '';
+  };
+});
+</script>
+{% endblock %}

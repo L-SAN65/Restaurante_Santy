@@ -17,9 +17,6 @@
     <a class="nav-link" href="{% url 'core:waiter_dashboard' %}">
       <span>🪑</span><span class="hidden lg:inline">Sala</span>
     </a>
-    <a class="nav-link" href="{% url 'core:cashier_dashboard' %}">
-      <span>🧾</span><span class="hidden lg:inline">Facturación</span>
-    </a>
     {% endif %}
     {% if user.role == 'CASHIER' or user.role == 'ADMIN' %}
     <a class="nav-link" href="{% url 'core:cashier_dashboard' %}">

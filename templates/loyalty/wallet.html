@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Fidelización · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Fidelización de Clientes</h1>
+  <a href="{% url 'core:cashier_dashboard' %}" class="btn-secondary">Volver al panel</a>
+</div>
+
+<div class="card mb-6 p-4">
+  <form method="get" class="flex items-end gap-4">
+    <div class="w-72">
+      <label for="cedula" class="label">Cédula del cliente</label>
+      <input type="text" id="cedula" name="cedula" class="input" placeholder="V-12345678" value="{{ cedula }}">
+    </div>
+    <button type="submit" class="btn-primary">Consultar puntos</button>
+  </form>
+</div>
+
+{% if searched %}
+<div class="grid gap-4 sm:grid-cols-3">
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Cédula</p>
+    <p class="mt-1 text-xl font-semibold">{{ cedula }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Saldo vigente</p>
+    <p class="mt-1 text-2xl font-semibold text-primary tabular-nums">{{ balance }} pts</p>
+    <p class="text-xs text-text-secondary">1 pt por cada USD entero · vencen a los 3 meses</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Equivalencia</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">${{ balance|floatformat:0|slice:":-1"|default:"0" }}0</p>
+    <p class="text-xs text-text-secondary">10 puntos = $1,00 de descuento</p>
+  </div>
+</div>
+
+<div class="card mt-6 overflow-hidden">
+  <div class="border-b border-slate-200 px-4 py-3 text-sm font-medium">Movimientos recientes</div>
+  {% if movements %}
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Tipo</th>
+        <th class="px-4 py-2 text-right font-medium text-text-secondary">Puntos</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Referencia</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Vence</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Fecha</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for m in movements %}
+      <tr>
+        <td class="px-4 py-2">
+          <span class="badge {% if m.movement_type == 'ACCRUAL' %}bg-primary-soft text-primary{% elif m.movement_type == 'REDEMPTION' %}bg-warning/20 text-warning{% else %}bg-danger/10 text-danger{% endif %}">
+            {{ m.get_movement_type_display }}
+          </span>
+        </td>
+        <td class="px-4 py-2 text-right tabular-nums font-medium {% if m.points < 0 %}text-danger{% else %}text-primary{% endif %}">
+          {{ m.points|floatformat:0 }}
+        </td>
+        <td class="px-4 py-2">{{ m.reference }}</td>
+        <td class="px-4 py-2">{{ m.expires_at|date:"d/m/Y"|default:"—" }}</td>
+        <td class="px-4 py-2">{{ m.created_at|date:"d/m/Y H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="px-4 py-8 text-center text-sm text-text-secondary">Sin movimientos para esta cédula.</p>
+  {% endif %}
+</div>
+
+<div class="card mt-6 p-4">
+  <h2 class="mb-4 text-lg font-semibold">Canjear puntos</h2>
+  <form method="post" action="{% url 'loyalty:redeem' %}" class="flex flex-wrap items-end gap-4">
+    {% csrf_token %}
+    <input type="hidden" name="cedula" value="{{ cedula }}">
+    <div class="w-40">
+      <label for="points" class="label">Puntos a canjear</label>
+      <input type="number" id="points" name="points" class="input" min="10" step="10" placeholder="10, 20, 30...">
+    </div>
+    <div class="w-40">
+      <label for="subtotal" class="label">Subtotal factura</label>
+      <input type="number" id="subtotal" name="subtotal" class="input" step="0.01" placeholder="0.00">
+    </div>
+    <button type="submit" class="btn-primary">Aplicar descuento</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

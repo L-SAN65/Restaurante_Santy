@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Inventario · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Gestión de Inventario</h1>
+  <div class="flex items-center gap-2">
+    <button class="btn-secondary">Nueva Recepción</button>
+    <button class="btn-secondary">Nueva Ficha Técnica</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <!-- Stock bajo cards -->
+  <div class="rounded-card border p-4">
+    <div class="text-sm font-medium text-text-secondary mb-2">Insumos con Stock Bajo</div>
+    <div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">
+      <!-- Items rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Platos deshabilitados -->
+  <div class="rounded-card border p-4">
+    <div class="text-sm font-medium text-text-secondary mb-2">Platos Deshabilitados por Stock</div>
+    <div id="disabled-dishes-list" class="space-y-2 max-h-48 overflow-y-auto">
+      <!-- Items rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Stock total -->
+  <div class="rounded-card border p-4">
+    <div class="text-sm font-medium text-text-secondary mb-2">Stock Total Insumos</div>
+    <div id="total-stats" class="text-xl font-semibold">Cargando...</div>
+    <div class="text-xs text-text-secondary mt-1" id="stock-details">
+      <!-- Details rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<div class="mt-6 p-4 rounded-card border" id="inventory-history">
+  <p class="text-sm text-text-secondary">Historial de Movimientos Recientes</p>
+  <div id="inventory-list" class="space-y-2 max-h-80 overflow-y-auto">
+    <!-- History rendered by JS -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loadInventoryData = async () => {
+    try {
+      const [stockResp, historyResp] = await Promise.all([
+        fetch('/api/inventory/stats/'),
+        fetch('/api/inventory/history/')
+      ]);
+      
+      const stats = await stockResp.json();
+      const history = await historyResp.json();
+      
+      // Update total stats
+      const totalEl = document.getElementById('total-stats');
+      if (totalEl) {
+        totalEl.textContent = `$${stats.total_value?.toFixed(2) ?? '0.00'}`;
+      }
+      
+      // Stock details
+      const detailsEl = document.getElementById('stock-details');
+      if (detailsEl) {
+        detailsEl.innerHTML = `
+          <p>Insumos totales: ${stats.total_ingredients ?? 0}</p>
+          <p>Insumos críticos: ${stats.critical_ingredients ?? 0}</p>
+        `;
+      }
+      
+      // Low stock list
+      const lowStockEl = document.getElementById('low-stock-list');
+      if (lowStockEl) {
+        lowStockEl.innerHTML = '';
+        (stats.low_stock ?? []).forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'p-2 rounded-card border border-red-100';
+          div.innerHTML = `<p class="font-medium text-red-600">${item.name}</p><p class="text-xs text-red-500">Stock: ${item.current_stock} / Mínimo: ${item.min_stock}</p>`;
+          lowStockEl.appendChild(div);
+        });
+      }
+      
+      // Disabled dishes
+      const disabledEl = document.getElementById('disabled-dishes-list');
+      if (disabledEl) {
+        disabledEl.innerHTML = '';
+        (stats.disabled_dishes ?? []).forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'p-2 rounded-card border border-orange-100';
+          div.innerHTML = `<p class="font-medium text-orange-600">${item.dish_name}</p><p class="text-xs text-orange-500">Falta: ${item.missing_ingredient}</p>`;
+          disabledEl.appendChild(div);
+        });
+      }
+      
+      // History list
+      const historyEl = document.getElementById('inventory-list');
+      if (historyEl) {
+        historyEl.innerHTML = '';
+        (history.history ?? []).forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'p-2 rounded-card border';
+          div.innerHTML = `<p class="font-medium text-text-primary">${item.type}: ${item.description}</p><p class="text-xs text-text-secondary">${item.formatted_date}</p>`;
+          historyEl.appendChild(div);
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error loading inventory data:', error);
+    }
+  };
+  
+  loadInventoryData();
+  
+  // Refresh every 30 seconds
+  setInterval(loadInventoryData, 30000);
+});
+</script>
+{% endblock %}

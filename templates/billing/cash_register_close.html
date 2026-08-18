@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Cierre de Caja · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Cierre de Caja</h1>
+  <a href="{% url 'core:cashier_dashboard' %}" class="btn-secondary">Volver al panel</a>
+</div>
+
+<div class="card p-4 mb-6">
+  <p class="text-sm text-text-secondary">
+    Cierre <strong>ciego</strong>: ingrese el efectivo físico declarado. El saldo esperado
+    <em>no se muestra</em> al cajero. Si la diferencia supera $2.00 deberá justificarla (RF-11).
+  </p>
+</div>
+
+<form method="post" class="card max-w-md space-y-4 p-6">
+  {% csrf_token %}
+  <div>
+    <label for="declared_cash" class="label">Efectivo declarado (USD)</label>
+    <input type="number" id="declared_cash" name="declared_cash" class="input" step="0.01" min="0" placeholder="0.00" required autofocus>
+  </div>
+  <div>
+    <label for="justification" class="label">Justificación (si aplica descuadre)</label>
+    <textarea id="justification" name="justification" rows="3" class="input" placeholder="Motivo del descuadre..."></textarea>
+  </div>
+  <button type="submit" class="btn-primary w-full">Confirmar cierre</button>
+</form>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Facturación · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Facturación y Cobro</h1>
+  <div class="flex items-center gap-2">
+    <button class="btn-secondary" onclick="window.history.back()">Volver</button>
+  </div>
+</div>
+
+<form class="space-y-4" id="billing-form">
+  <div>
+    <label for="table-select" class="label">Mesa</label>
+    <select id="table-select" name="table" class="input">
+      <option value="">Seleccionar mesa</option>
+      {% for table in tables %}
+      <option value="{{ table.id }}">{{ table.nombre }} ({{ table.capacity }} personas)</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div id="products-container" class="space-y-3">
+    <!-- Products rendered by JS -->
+  </div>
+
+  <button type="button" class="text-primary hover:underline text-sm" onclick="addProduct()">Añadir producto</button>
+
+  <div class="grid grid-cols-3 gap-4 mt-4">
+    <div>
+      <p class="text-sm text-text-secondary">Subtotal</p>
+      <p class="text-2xl font-semibold tabular-nums" id="billing-subtotal">$0.00</p>
+    </div>
+    <div>
+      <p class="text-sm text-text-secondary">IVA 15%</p>
+      <p class="text-2xl font-semibold tabular-nums" id="billing-iva">$0.00</p>
+    </div>
+    <div>
+      <p class="text-sm text-text-secondary">Total</p>
+      <p class="text-2xl font-bold text-primary tabular-nums" id="billing-total">$0.00</p>
+    </div>
+  </div>
+
+  <div>
+    <label class="label">Forma de pago</label>
+    <select name="payment_method" class="input w-full">
+      <option value="efectivo">Efectivo</option>
+      <option value="tarjeta">Tarjeta</option>
+      <option value="transferencia">Transferencia</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn-primary w-full mt-4">Emitir Factura</button>
+</form>
+
+<div class="mt-6 p-4 rounded-card border" id="payment-change">
+  <p class="text-sm text-text-secondary">Cambio a devolver</p>
+  <p class="text-2xl font-semibold text-primary tabular-nums" id="change-amount">$0.00</p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let products = [];
+  
+  const addProduct = () => {
+    const container = document.getElementById('products-container');
+    if (!container) return;
+    
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-4 p-3 rounded-card border';
+    div.innerHTML = `
+      <input type="text" class="input flex-1 product-name" placeholder="Nombre del producto">
+      <input type="number" min="1" step="1" class="input w-24 product-qty" placeholder="Cantidad">
+      <input type="number" step="0.01" min="0" class="input w-32 product-price" placeholder="Precio">
+      <button type="button" class="text-danger hover:underline remove-product">×</button>
+    `;
+    
+    const removeBtn = div.querySelector('.remove-product');
+    removeBtn.addEventListener('click', () => div.remove());
+    
+    container.appendChild(div);
+  };
+  
+  // Initial products
+  addProduct();
+  addProduct();
+  
+  const calculateTotals = () => {
+    let subtotal = 0;
+    const priceInputs = document.querySelectorAll('.product-price');
+    
+    priceInputs.forEach(input => {
+      const value = parseFloat(input.value) || 0;
+      subtotal += value;
+    });
+    
+    const iva = subtotal * 0.15;
+    const total = subtotal + iva;
+    const payment = document.querySelector('select[name="payment_method"]')?.value || '';
+    let change = 0;
+    
+    if (payment && total > 0) {
+      const tendered = parseFloat(prompt(`Ingrese el monto recibido (total: $${total.toFixed(2)}):`) || '0');
+      if (tendered !== null && tendered >= total) {
+        change = tendered - total;
+        document.getElementById('change-amount').textContent = `$${change.toFixed(2)}`;
+      }
+    }
+    
+    document.getElementById('billing-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('billing-iva').textContent = `$${iva.toFixed(2)}`;
+    document.getElementById('billing-total').textContent = `$${total.toFixed(2)}`;
+  };
+  
+  document.querySelectorAll('.product-price').forEach(() => calculateTotals);
+  
+  document.querySelectorAll('.product-price').forEach(input => {
+    input.addEventListener('input', calculateTotals);
+  });
+  
+  const form = document.getElementById('billing-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        products: [],
+        payment_method: document.querySelector('select[name="payment_method"]')?.value,
+        table_id: document.getElementById('table-select')?.value
+      };
+      
+      document.querySelectorAll('.product-name').forEach((nameInput, index) => {
+        const qtyInput = document.querySelectorAll('.product-qty')[index];
+        const priceInput = document.querySelectorAll('.product-price')[index];
+        if (nameInput.value) {
+          formData.products.push({
+            name: nameInput.value,
+            quantity: parseInt(qtyInput.value) || 1,
+            price: parseFloat(priceInput.value) || 0
+          });
+        }
+      });
+      
+      try {
+        const response = await fetch('/api/billing/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Factura emitida exitosamente:\n' +
+            `Factura #${data.invoice_number}\n` +
+            `Subtotal: $${data.subtotal.toFixed(2)}\n` +
+            `IVA 15%: $${data.iva.toFixed(2)}\n` +
+            `Total: $${data.total.toFixed(2)}\n` +
+            `Mesa: ${data.table_number} - ${data.status}`);
+          
+          // Reset form
+          form.reset();
+          document.getElementById('products-container').innerHTML = '';
+          addProduct();
+          calculateTotals();
+        } else {
+          alert('Error: ' + (data.detail || 'Error desconocido'));
+        }
+      } catch (error) {
+        alert('Error de conexión: ' + error.message);
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

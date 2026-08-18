@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}KDS - Cocina · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Sistema Visualizador de Comandas (KDS)</h1>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'core:chef_dashboard' %}" class="btn-secondary">Volver al panel</a>
+    <a href="{% url 'core:kds_shrinkage' %}" class="btn-secondary">Mermas</a>
+  </div>
+</div>
+
+<div class="card p-4 mb-6">
+  <p class="text-sm text-text-secondary">
+    Semáforo por tiempo en preparación (RF-05): <strong class="text-green-600">Verde &lt; 10 min</strong> ·
+    <strong class="text-yellow-600">Amarillo 10-20 min</strong> · <strong class="text-red-600">Rojo &gt; 20 min</strong>.
+  </p>
+</div>
+
+{% if tickets %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  {% for order in tickets %}
+  {% if order.status == 'PREPARING' %}
+  <div class="card overflow-hidden" data-ticket="{{ order.pk }}">
+    <div class="flex items-center justify-between px-4 py-3 text-white {% if order.traffic_light == 'red' %}bg-danger{% elif order.traffic_light == 'yellow' %}bg-warning text-slate-900{% else %}bg-primary{% endif %}">
+      <p class="font-semibold">Mesa {{ order.table.number }}</p>
+      <span class="rounded-full bg-black/15 px-2 py-0.5 text-xs font-semibold">
+        {{ order.traffic_light|upper }}
+      </span>
+    </div>
+    <div class="p-4">
+      <p class="mb-2 text-xs text-text-secondary">Comanda #{{ order.pk }} · {{ order.items.count }} ítems · Tiempo: {{ order.elapsed_minutes }} min</p>
+      <ul class="space-y-1">
+        {% for item in order.items.all %}
+        <li class="flex items-center justify-between text-sm">
+          <span>{{ item.quantity }} × {{ item.name }}</span>
+          {% if item.notes %}<span class="text-xs text-text-secondary">{{ item.notes }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="card p-10 text-center">
+  <p class="text-sm text-text-secondary">No hay comandas en preparación.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,28 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Panel de Administrador · Santy{% endblock %}
 {% block content %}
-<h1 class="mb-6 text-3xl font-semibold tracking-tight">Panel de Administrador</h1>
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Panel de Administrador</h1>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'audit:pin' %}" class="btn-secondary">PIN Auditoría</a>
+    <a href="{% url 'billing:reports' %}" class="btn-secondary">Reportes</a>
+    <a href="{% url 'audit:trail' %}" class="btn-secondary">Auditoría</a>
+  </div>
+</div>
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card p-4">
     <p class="text-sm text-text-secondary">Ventas del día</p>
-    <p class="mt-1 text-2xl font-semibold tabular-nums">$4,280.00</p>
-    <span class="badge bg-primary-soft text-primary mt-2">+12% hoy</span>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">${{ today_total|floatformat:2 }}</p>
+    <span class="badge bg-primary-soft text-primary mt-2">IVA 15%</span>
   </div>
   <div class="card p-4">
     <p class="text-sm text-text-secondary">Pedidos activos</p>
-    <p class="mt-1 text-2xl font-semibold tabular-nums">12</p>
-    <span class="badge bg-warning/20 text-warning mt-2">En cocina</span>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ active_orders }}</p>
+    <span class="badge bg-warning/20 text-warning mt-2">En cocina / sala</span>
   </div>
   <div class="card p-4">
-    <p class="text-sm text-text-secondary">Stock bajo</p>
-    <p class="mt-1 text-2xl font-semibold tabular-nums">3</p>
+    <p class="text-sm text-text-secondary">Stock crítico</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ low_stock }}</p>
     <span class="badge bg-danger/10 text-danger mt-2">Requiere compra</span>
   </div>
   <div class="card p-4">
     <p class="text-sm text-text-secondary">Mesas ocupadas</p>
-    <p class="mt-1 text-2xl font-semibold tabular-nums">8</p>
-    <span class="badge bg-info/10 text-info mt-2">De 24</span>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ occupied_tables }}</p>
+    <span class="badge bg-info/10 text-info mt-2">De {{ table_count }}</span>
   </div>
 </div>
 

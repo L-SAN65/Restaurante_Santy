@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Cierre de Caja · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Cierre de Caja</h1>
+  <button class="btn-secondary" onclick="window.history.back()">Volver</button>
+</div>
+
+<form class="space-y-4" id="cash-closing-form">
+  <div>
+    <label for="physical-cash" class="label">Efectivo declarado</label>
+    <input type="number" id="physical-cash" name="physical_cash" class="input" step="0.01" min="0" required>
+  </div>
+
+  <div>
+    <label for="expected-cash" class="label">Saldo esperado (invisible al cajero)</label>
+    <input type="number" id="expected-cash" name="expected_cash" class="input" step="0.01" min="0" readonly>
+    <p class="text-xs text-text-secondary mt-1">Sistema calcula automáticamente</p>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="label">Diferencia</label>
+      <input type="text" id="difference" name="difference" class="input rounded-card border" readonly>
+    </div>
+    <div>
+      <label class="label">Estado</label>
+      <select id="status" name="status" class="input" readonly>
+        <option value="Cuadrada">Cuadrada</option>
+        <option value="Descuadre Pendiente">Descuadre Pendiente</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <label class="label">Justificación (solo si descuadre)</label>
+    <textarea id="justification" name="justification" rows="3" class="input placeholder-text-sm" placeholder="Motivo del descuadre..."></textarea>
+  </div>
+
+  <button type="submit" class="btn-primary w-full mt-4">Confirmar Cierre</button>
+</form>
+
+<div class="mt-6 p-4 rounded-card border" id="close-result">
+  <!-- Result will be inserted by JS -->
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('cash-closing-form');
+  const resultDiv = document.getElementById('close-result');
+  
+  if (!form || !resultDiv) return;
+  
+  // Set initial expected cash from localStorage or default
+  const storedExpected = localStorage.getItem('expected_cash');
+  document.getElementById('expected-cash').value = storedExpected || '';
+  
+  const calculateDifference = () => {
+    const physical = parseFloat(document.getElementById('physical-cash').value) || 0;
+    const expected = parseFloat(document.getElementById('expected-cash').value) || 0;
+    const differenceEl = document.getElementById('difference');
+    const statusEl = document.getElementById('status');
+    
+    if (differenceEl && statusEl) {
+      const diff = physical - expected;
+      differenceEl.value = diff.toFixed(2);
+      
+      if (Math.abs(diff) <= 2.00) {
+        statusEl.value = 'Cuadrada';
+      } else {
+        statusEl.value = 'Descuadre Pendiente';
+      }
+    }
+  };
+  
+  document.querySelectorAll('input[name="physical-cash"], input[name="expected-cash"]').forEach(input => {
+    input.addEventListener('input', calculateDifference);
+  });
+  
+  const form = document.getElementById('cash-closing-form');
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const physicalCash = parseFloat(document.getElementById('physical-cash').value) || 0;
+    const expectedCash = parseFloat(document.getElementById('expected-cash').value) || 0;
+    const difference = parseFloat(document.getElementById('difference').value) || 0;
+    const status = document.getElementById('status').value;
+    const justification = document.getElementById('justification').value;
+    
+    if (status === 'Descuadre Pendiente' && !justification) {
+      alert('Por favor ingrese una justificación para el descuadre');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/cash-closing/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+          physical_cash: physicalCash,
+          expected_cash: expectedCash,
+          difference: difference,
+          status: status,
+          justification: justification
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        resultDiv.innerHTML = `
+          <div class="p-4 rounded-card border border-primary">
+            <h3 class="font-medium text-primary mb-2">Cierre completado</h3>
+            <p><strong>Efectivo declarado:</strong> $${physicalCash.toFixed(2)}</p>
+            <p><strong>Saldo esperado:</strong> $${expectedCash.toFixed(2)}</p>
+            <p><strong>Diferencia:</strong> $${difference.toFixed(2)}</p>
+            <p><strong>Estado:</strong> ${status}</p>
+            <p><strong>Número de cierre:</strong> ${data.closing_number}</p>
+          </div>
+        `;
+        
+        // Store for next session
+        localStorage.setItem('expected_cash', expectedCash.toString());
+      } else {
+        alert('Error: ' + (data.detail || 'Error desconocido'));
+      }
+    } catch (error) {
+      alert('Error de conexión: ' + error.message);
+    }
+  });
+  
+  const getCSRFToken = () => {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const parts = cookie.trim().split('=');
+      if (parts[0] === 'csrftoken') {
+        return parts[1];
+      }
+    }
+    return '';
+  };
+});
+</script>
+{% endblock %}

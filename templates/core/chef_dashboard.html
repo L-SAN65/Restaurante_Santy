@@ -1,10 +1,66 @@
 {% extends "base.html" %}
-{% block title %}KDS · Santy{% endblock %}
+{% block title %}Panel del Chef · Santy{% endblock %}
 {% block content %}
-<h1 class="mb-6 text-3xl font-semibold tracking-tight">Kitchen Display System</h1>
-<div class="rounded-card border border-slate-800 bg-kds-bg p-6">
-  <p class="text-center text-sm text-slate-400 py-24">
-    KDS en tiempo real (SCREEN: kds_main) · semáforo de tiempos
-  </p>
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-3xl font-semibold tracking-tight">Panel del Chef</h1>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'core:kds_main' %}" class="btn-primary">Abrir KDS</a>
+    <a href="{% url 'core:kds_shrinkage' %}" class="btn-secondary">Registrar merma</a>
+  </div>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Comandas en preparación</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ preparing_count }}</p>
+    <span class="badge bg-warning/20 text-warning mt-2">En cocina</span>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">En espera</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ waiting_count }}</p>
+    <span class="badge bg-info/10 text-info mt-2">Pendientes</span>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Sobre tiempo (&gt; 20 min)</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums text-danger">{{ overdue_count }}</p>
+    <span class="badge bg-danger/10 text-danger mt-2">Semáforo rojo</span>
+  </div>
+  <div class="card p-4">
+    <p class="text-sm text-text-secondary">Mermas hoy</p>
+    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ shrinkage_count }}</p>
+    <span class="badge bg-danger/10 text-danger mt-2">Auditadas</span>
+  </div>
+</div>
+
+<div class="card mt-6 overflow-hidden">
+  <div class="border-b border-slate-200 px-4 py-3 text-sm font-medium">Comandas recientes</div>
+  {% if recent_orders %}
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Comanda</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Mesa</th>
+        <th class="px-4 py-2 text-left font-medium text-text-secondary">Estado</th>
+        <th class="px-4 py-2 text-right font-medium text-text-secondary">Tiempo</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for order in recent_orders %}
+      <tr>
+        <td class="px-4 py-2">#{{ order.pk }}</td>
+        <td class="px-4 py-2">Mesa {{ order.table.number }}</td>
+        <td class="px-4 py-2">
+          <span class="badge {% if order.status == 'PREPARING' %}bg-warning/20 text-warning{% elif order.status == 'READY' %}bg-primary-soft text-primary{% else %}bg-slate-100 text-text-secondary{% endif %}">
+            {{ order.get_status_display }}
+          </span>
+        </td>
+        <td class="px-4 py-2 text-right tabular-nums">{{ order.elapsed_minutes }} min</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="px-4 py-8 text-center text-sm text-text-secondary">Sin comandas recientes.</p>
+  {% endif %}
 </div>
 {% endblock %}
