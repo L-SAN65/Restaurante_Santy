@@ -61,6 +61,60 @@ def login_view(request):
     return render(request, "core/login.html")
 
 
+def client_login_view(request):
+    """Login para clientes (Role.CLIENT) — redirige a mis reservas."""
+    if request.user.is_authenticated:
+        if request.user.role == Role.CLIENT:
+            return redirect("reservations:my_reservations")
+        return redirect(request.user.dashboard_url)
+
+    if request.method == "POST":
+        identifier = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+
+        user = _resolve_user(identifier)
+        if user is None:
+            AuditLog.log(None, ActionType.LOGIN_FAILED, Result.FAILURE,
+                         object_type="USER", detail=f"Email no registrado: {identifier}")
+            messages.error(request, "Credenciales inválidas.")
+            return render(request, "reservations/login.html")
+
+        if user.role != Role.CLIENT:
+            AuditLog.log(user, ActionType.LOGIN_FAILED, Result.FAILURE,
+                         object_type="USER", object_id=user.pk, detail="Intento de login cliente con cuenta staff")
+            messages.error(request, "Esta área es solo para clientes.")
+            return render(request, "reservations/login.html")
+
+        allowed, reason = user.login_allowed()
+        if not allowed:
+            AuditLog.log(user, ActionType.LOGIN_FAILED, Result.FAILURE,
+                         object_type="USER", object_id=user.pk, detail=reason)
+            messages.error(request, reason)
+            return render(request, "reservations/login.html")
+
+        auth_user = authenticate(request, username=user.username, password=password)
+        if auth_user is not None:
+            auth_user.reset_login_attempts()
+            auth_login(request, auth_user)
+            AuditLog.log(auth_user, ActionType.LOGIN, Result.SUCCESS,
+                         object_type="USER", object_id=auth_user.pk)
+            return redirect("reservations:my_reservations")
+
+        user.record_failed_login()
+        AuditLog.log(user, ActionType.LOGIN_FAILED, Result.FAILURE,
+                     object_type="USER", object_id=user.pk,
+                     detail=f"Fallos consecutivos: {user.failed_login_count}")
+        if user.is_permanently_locked:
+            messages.error(request, "Cuenta bloqueada. Contacte al administrador.")
+        elif user.suspended_until:
+            messages.error(request, "Cuenta suspendida por 15 minutos por intentos fallidos.")
+        else:
+            messages.error(request, "Credenciales inválidas.")
+        return render(request, "reservations/login.html")
+
+    return render(request, "reservations/login.html")
+
+
 class CustomLogoutView(LogoutView):
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:

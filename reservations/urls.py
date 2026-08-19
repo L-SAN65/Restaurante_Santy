@@ -1,5 +1,6 @@
 from django.urls import path
 
+from core.views import client_login_view
 from .views import (
     cancel_reservation,
     my_reservations,
@@ -11,6 +12,7 @@ from .views import (
 app_name = "reservations"
 
 urlpatterns = [
+    path("login/", client_login_view, name="client_login"),
     path("", reservation_portal, name="portal"),
     path("mis-reservas/", my_reservations, name="my_reservations"),
     path("mis-reservas/<int:reservation_id>/cancelar/", cancel_reservation, name="cancel"),
