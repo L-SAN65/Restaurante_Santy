@@ -16,22 +16,24 @@
 **Consecuencias:**
 - Un solo lenguaje (Python) en todo el código → menos cambio de contexto en prompts de IA y mantenimiento.
 - Django Admin cubre la gestión CRUD operativa (inventario, usuarios, reportes).
-- El realtime se resuelve con **Django Channels** (WebSockets) + Supabase Realtime broadcast.
+- El realtime se resuelve con **Supabase Realtime** (push al navegador con RLS) + polling **HTMX**. No hay servidores WebSocket propios: son incompatibles con el runtime serverless de Vercel.
 - El frontend es renderizado server-side (HTML + Tailwind), no requiere Node en runtime (solo en build para Tailwind).
 
 ### ADR-002 — Supabase como PostgreSQL + servicios auxiliares
 
 - **Base de datos:** PostgreSQL gestionado (ACID, respaldos automáticos RNF-12).
 - **RLS:** capa extra de seguridad por fila (complementa validación server-side RNF-02).
-- **Realtime:** publica cambios (estados de mesa, semáforo KDS) que Django Channels consume.
+- **Realtime:** publica los cambios (estados de mesa, semáforo KDS) que el navegador consume directamente vía suscripción con `anon key` + RLS (sin pasar por Django ni por WebSockets propios).
 - **Auth:** se usa el sistema de autenticación de Django (rol por modelo), NO Supabase Auth; esto evita duplicar la lógica de suspensión/bloqueo de 15 min / 5 fallos (RF-02/RF-03).
-- **Storage:** reportes PDF/Excel y archivos de auditoría.
+- **Storage:** los reportes (PDF/Excel) se generan en memoria (`BytesIO`/`FileResponse`) y el navegador los descarga como `attachment`; **no hay almacenamiento persistente en servidor** (el filesystem serverless es efímero y no se necesita). No se usa Supabase Storage.
 
 ### ADR-003 — Vercel como plataforma de despliegue
 
-- Hosting de la app Django vía buildpack Python (`@vercel/python`) + `vercel.json`.
-- `build.sh` ejecuta: pip install → npm build (Tailwind) → collectstatic → migrate.
-- Los estáticos se comprimen con **WhiteNoise** (listos para Vercel/edge).
+- Django se despliega con soporte **nativo de Vercel** (zero-config: detecta `manage.py` y toma el entrypoint de `WSGI_APPLICATION`). Sin `builds`/`routes` legacy ni `/api`.
+- `build.py` es el Build Command: `npm ci` → Tailwind build → `collectstatic` → `migrate` (solo en `VERCEL_ENV=production`).
+- Los estáticos se sirven por la **CDN de Vercel**; **WhiteNoise** queda como respaldo de `collectstatic`.
+- El runtime es **HTTP-only** (serverless): sin WebSockets; el realtime recae en Supabase Realtime (ADR-002).
+- Versión de Python fijada en `.python-version` (3.12, requerida por Django 6.1).
 
 ### ADR-004 — Arquitectura modular por dominio (apps Django)
 
@@ -80,16 +82,21 @@ Los valores de negocio (IVA, tolerancias, minutos) son editables por el Administ
 
 ## 4. Realtime (KDS y estados de mesa)
 
-```
-Chef/Cajero/Mesero   →   Browser WebSocket  →  Django Channels (santy/routing.py)
-                                                 │
-                                                 ▼
-                                     serve/consume de Supabase Realtime
-                                     (broadcast de cambios de Order/Table)
-```
+El runtime de Vercel es HTTP-only, así que **no se usa Django Channels** (eliminado en el refactor de despliegue). Dos mecanismos cubren el realtime:
 
-- `santy/asgi.py` configura `ProtocolTypeRouter` (HTTP + WebSocket).
-- El consumer del KDS se implementa en `kitchen/consumers.py` (pendiente de código de cliente).
+### 4a. Supabase Realtime (push, canal preferente)
+```
+Cambio en Order/Table (Django/Supabase)
+   -> Supabase Realtime (Postgres LISTEN/NOTIFY + WAL)
+   -> Navegador suscrito con anon_key + RLS
+   -> JS actualiza KDS / floor plan / caja sin recargar
+```
+- El navegador se suscribe con la `SUPABASE_URL` + `SUPABASE_ANON_KEY` (env de Vercel) a las tablas `kitchen_order` / `reservations_table`.
+- No hay servidor WebSocket propio ni Redis: nada que escalar en serverless.
+
+### 4b. Polling HTMX (fallback simple, sin dependencias nuevas)
+- Vistas KDS / floor plan devuelven un **partial** y el template usa `hx-trigger="every 5s"`.
+- Suficiente para 1 restaurante; combinarlas como degradación si Realtime falla.
 
 ---
 
@@ -97,7 +104,7 @@ Chef/Cajero/Mesero   →   Browser WebSocket  →  Django Channels (santy/routin
 
 ```
 Restaurante_Santy/
-├── santy/                # Config: settings, urls, asgi, routing (WebSockets)
+├── santy/                # Config: settings, urls, wsgi (WSGI-only, sin Channels)
 ├── core/                 # Usuarios, roles, BusinessConfig, login/dashboards
 ├── reservations/         # Mesas, reservas, TableBlock (concurrencia)
 ├── kitchen/              # Comandas, KDS, mermas, platillos
@@ -110,8 +117,9 @@ Restaurante_Santy/
 ├── static/css/           # input.css (fuente Tailwind) → output.css (compilado)
 ├── docs/BDD/             # Features Gherkin + DESIGN.md (Stitch)
 ├── .env.example          # Plantilla para DATABASE_URL de Supabase
-├── vercel.json           # Despliegue Vercel
-├── build.sh              # Build pipeline Vercel
+├── .python-version       # Versión de Python 3.12 (requisito de Django 6.1)
+├── build.py              # Build Command de Vercel (Tailwind + collectstatic + migrate)
+├── vercel.json           # Despliegue Vercel (zero-config, sin legacy builds)
 └── requirements.txt      # Dependencias Python
 ```
 
@@ -167,6 +175,6 @@ python manage.py runserver
 ## 8. Pendientes (siguiente fase)
 
 - Mapear las 20+ pantallas Stitch restantes a templates (tabla §6).
-- `kitchen/consumers.py` + integración con Supabase Realtime para KDS/estados de mesa.
+- Suscripción **Supabase Realtime** en el navegador (KDS / estados de mesa) con RLS + partials **HTMX** como fallback.
 - Vistas de facturación, cierre ciego, reservas (portal cliente) e inventario.
 - Tests de aceptación a partir de `docs/BDD/*.feature`.

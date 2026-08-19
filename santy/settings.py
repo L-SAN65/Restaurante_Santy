@@ -160,14 +160,4 @@ STORAGES = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
-# ---------------------------------------------------------------------------
-# Email
-# ---------------------------------------------------------------------------
-
-MAILERS = {
-    "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
-}
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

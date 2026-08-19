@@ -28,6 +28,7 @@ Referencias:
 - `docs/ARQUITECTURA.md` — decisiones ADR, mapa de pantallas → templates, pendientes.
 - `docs/BDD/*.feature` — especificaciones Gherkin (fuente de verdad del comportamiento).
 - `docs/stitch/design-system/DESIGN.md` — sistema de diseño (colores, tipografía, shapes).
+- Realtime (KDS/estados de mesa): **Supabase Realtime** directo al navegador (anon key + RLS) con polling **HTMX** como fallback. Sin WebSockets propios (serverless de Vercel es HTTP-only).
 
 ---
 
@@ -68,6 +69,9 @@ python manage.py test            # ejecutar TODA la suite de tests
 
 # Usuarios seed: admin@santy.com/admin · cajero@santy.com/cajero · mesero@santy.com/mesero ·
 #                chef@santy.com/chef · bodega@santy.com/bodega
+
+# Despliegue (Vercel) — réplica local del Build Command
+python build.py            # npm ci + tailwind + collectstatic (+ migrate solo en producción)
 ```
 
 ---

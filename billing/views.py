@@ -4,7 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
-from django.http import HttpResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -81,9 +81,10 @@ def reports_view(request):
     return render(request, "billing/reports.html", context)
 
 
-def _export_response(payload, filename, content_type):
-    response = HttpResponse(payload, content_type=content_type)
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+def _export_response(buffer, filename, content_type):
+    """Descarga directa en el cliente: el archivo se genera en memoria (BytesIO)
+    y se transmite como attachment sin escribir nada en el filesystem del servidor."""
+    response = FileResponse(buffer, content_type=content_type, as_attachment=True, filename=filename)
     return response
 
 
@@ -155,7 +156,7 @@ def reports_export_excel(request):
     wb.save(buffer)
     buffer.seek(0)
     return _export_response(
-        buffer.getvalue(),
+        buffer,
         f"reporte_santy_{start or 'all'}_{end or 'all'}.xlsx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
@@ -253,7 +254,7 @@ def reports_export_pdf(request):
     doc.build(elements)
     buffer.seek(0)
     return _export_response(
-        buffer.getvalue(),
+        buffer,
         f"reporte_santy_{start or 'all'}_{end or 'all'}.pdf",
         "application/pdf",
     )

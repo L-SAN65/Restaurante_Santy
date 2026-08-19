@@ -22,6 +22,59 @@ Registro de todos los cambios realizados en el proyecto, organizado por sesión.
 
 ---
 
+## Sesión 2026-08-19 — Descargas locales PDF/Excel (sin storage en servidor) y sin email
+
+> Los reportes PDF/Excel se generan en memoria (`BytesIO`) y el navegador los descarga directo (streaming con `FileResponse`, `as_attachment=True`); no se escribe ni persiste archivo alguno en el servidor, lo cual es inherentemente compatible con el filesystem efímero de serverless. El sistema no envía correos.
+
+| Archivo | Descripción |
+|---|---|
+| `billing/views.py` | `_export_response` ahora usa `FileResponse` sobre el buffer (`BytesIO`) con `as_attachment=True`; se elimina `HttpResponse(bytes)` y cualquier dependencia de disco. |
+| `santy/settings.py` | Se elimina el bloque de email (`MAILERS`, que además no era una setting válida de Django); no se envían correos. |
+| `docs/ARQUITECTURA.md` | ADR-002 Storage actualizado: reportes en memoria + descarga en cliente, **sin** Supabase Storage; se elimina el pendiente de archivos a Storage. |
+
+**Evidencia:** `python manage.py check` → 0 issues; `python manage.py test` → 28 tests OK.
+
+---
+
+---
+
+---
+
+## Sesión 2026-08-19 — Rediseño de despliegue para Vercel (refactor de arquitectura)
+
+> **Commit relacionado:** `6a8a413`
+> Se elimina Django Channels/ASGI (incompatible con el runtime serverless de Vercel) y se migra a la integración nativa de Django. El realtime pasa a Supabase Realtime + polling HTMX.
+
+### Configuración de despliegue
+| Archivo | Descripción |
+|---|---|
+| `vercel.json` | Reescrito al formato moderno: zero-config Django (detecta `manage.py` y toma `WSGI_APPLICATION`) con `buildCommand` y `functions.maxDuration`; se elimina el formato legacy `builds`/`routes` y `@vercel/python`. |
+| `build.py` | **Nuevo** pipeline de build (Build Command): `npm ci` → Tailwind build → `collectstatic` → `migrate` (solo con `VERCEL_ENV=production`). Reemplaza a `build.sh`. |
+| `.python-version` | **Nuevo:** fija Python 3.12 en el runtime de Vercel (requisito de Django 6.1). |
+| `.env.example` | Elimina `REDIS_URL`/Channels; documenta Supabase Realtime (anon key + RLS) y variables inyectadas por Vercel (`VERCEL`, `VERCEL_ENV`). |
+
+### Django
+| Archivo | Descripción |
+|---|---|
+| `requirements.txt` | Se eliminan `channels==4.3.2` y `channels-redis==4.3.0`. |
+| `santy/settings.py` | Se elimina `channels` de `INSTALLED_APPS`, `ASGI_APPLICATION` y `CHANNEL_LAYERS`; `DEBUG` se fuerza a `False` en build/runtime de Vercel. |
+| `santy/asgi.py` | **Eliminado** (sin WebSockets propios). |
+| `santy/routing.py` | **Eliminado** (sin consumers). |
+| `build.sh` | **Eliminado** (reemplazado por `build.py`). |
+
+### Realtime (nueva estrategia)
+- **Supabase Realtime al navegador** (suscripción directa con `anon key` + RLS) como canal preferente y **polling HTMX** (`hx-trigger="every 5s"`) como fallback. Sin servidor WebSocket propio ni Redis.
+
+### Documentación
+| Archivo | Descripción |
+|---|---|
+| `docs/ARQUITECTURA.md` | ADR-001/002/003 actualizados, sección 4 (Realtime) reescrita, estructura de carpetas y pendientes actualizados. |
+
+### Verificaciones
+1. `python manage.py check` → 0 issues.
+2. `python manage.py test` → **28 tests OK**.
+3. `python build.py` local → npm ci + Tailwind + collectstatic OK; migrate omitido fuera de producción.
+
 ---
 
 ## 1. Infraestructura y toolchain
