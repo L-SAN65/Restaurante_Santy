@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Reportes · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Reportes de ventas y mermas</h1>
+    <p class="text-sm text-text-secondary">Consolidado por rango de fechas · USD · UTC-5 · Exportable a PDF y Excel</p>
+  </div>
+</div>
+
+<form method="get" class="card mb-6 flex flex-wrap items-end gap-3 p-5">
+  <div>
+    <label class="label" for="start">Desde</label>
+    <input id="start" type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="input">
+  </div>
+  <div>
+    <label class="label" for="end">Hasta</label>
+    <input id="end" type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="input">
+  </div>
+  <div class="flex gap-2">
+    <button type="submit" class="btn-primary">Filtrar</button>
+    <a href="{% url 'billing:reports_export_pdf' %}?start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}" class="btn-secondary">PDF</a>
+    <a href="{% url 'billing:reports_export_excel' %}?start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}" class="btn-secondary">Excel</a>
+  </div>
+</form>
+
+<div class="grid gap-4 sm:grid-cols-3">
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Ventas brutas</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ gross_sales|usd }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Facturas emitidas</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ invoice_count }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Mermas</p>
+    <p class="mt-2 text-2xl font-semibold text-danger">{{ shrinkage_total }}</p>
+  </div>
+</div>
+
+<div class="mt-6 grid gap-4 lg:grid-cols-2">
+  <div class="card overflow-x-auto">
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Ventas</h2>
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+          <th class="px-4 py-2">Factura</th><th class="p-2">Fecha</th><th class="p-2">Cliente</th>
+          <th class="p-2">Subtotal</th><th class="p-2">IVA</th><th class="p-2">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr class="border-b border-slate-100">
+          <td class="px-4 py-2 font-medium">#{{ invoice.pk }}</td>
+          <td class="p-2">{{ invoice.issued_at|date:"d/m/Y H:i" }}</td>
+          <td class="p-2">{{ invoice.client_name|default:"—" }}</td>
+          <td class="p-2">{{ invoice.subtotal|usd }}</td>
+          <td class="p-2">{{ invoice.vat_amount|usd }}</td>
+          <td class="p-2 font-medium">{{ invoice.total|usd }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="p-4 text-center text-text-secondary">Sin facturas en el rango.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card overflow-x-auto">
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Mermas</h2>
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+          <th class="px-4 py-2">Platillo</th><th class="p-2">Motivo</th><th class="p-2">Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in shrinkages %}
+        <tr class="border-b border-slate-100">
+          <td class="px-4 py-2 font-medium">{{ s.order_item.name }}</td>
+          <td class="p-2">{{ s.reason }}</td>
+          <td class="p-2">{{ s.registered_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="p-4 text-center text-text-secondary">Sin mermas en el rango.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

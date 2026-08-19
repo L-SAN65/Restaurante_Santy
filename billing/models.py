@@ -67,7 +67,7 @@ class CashRegister(models.Model):
         """Cierre ciego con tolerancia de descuadre (RF-10/RF-11)."""
         from decimal import Decimal
 
-        expected = self.total_billed
+        expected = self.opening_fund + self.total_billed
         self.declared_cash = Decimal(str(declared_cash))
         self.difference = abs(self.declared_cash - expected).quantize(Decimal("0.01"))
         self.justification = ""

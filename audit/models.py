@@ -10,6 +10,7 @@ class ActionType(models.TextChoices):
     SHRINKAGE = "SHRINKAGE", "Merma"
     CASH_CLOSE = "CASH_CLOSE", "Cierre de caja"
     CASH_OPEN = "CASH_OPEN", "Apertura de caja"
+    INVOICE_ISSUE = "INVOICE_ISSUE", "Emisión de factura"
     PIN_ISSUE = "PIN_ISSUE", "Emisión de PIN"
     PIN_CONSUMED = "PIN_CONSUMED", "PIN consumido"
     INVENTORY_CORRECTION = "INVENTORY_CORRECTION", "Corrección de inventario"

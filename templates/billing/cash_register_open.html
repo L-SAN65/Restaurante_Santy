@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Apertura de caja · Santy{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Apertura de caja</h1>
+    <p class="text-sm text-text-secondary">El fondo inicial debe ser mayor a $0.00. Una única apertura activa por turno · UTC-5</p>
+  </div>
+
+  {% if active %}
+  <div class="card p-5">
+    <p class="text-sm text-text-secondary">Ya hay una caja abierta en este turno.</p>
+    <a href="{% url 'billing:cash_register_close' %}" class="btn-primary mt-3 w-full">Ir al cierre ciego</a>
+  </div>
+  {% else %}
+  <form method="post" class="card space-y-4 p-6">
+    {% csrf_token %}
+    <div>
+      <label class="label" for="opening_fund">Fondo inicial (USD)</label>
+      <input id="opening_fund" type="number" name="opening_fund" min="0.01" step="0.01" class="input" required autofocus>
+      <span class="text-xs text-text-secondary">La apertura con $0.00 es rechazada y las funciones de cobro permanecen bloqueadas.</span>
+    </div>
+    <button type="submit" class="btn-primary w-full">Abrir caja</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

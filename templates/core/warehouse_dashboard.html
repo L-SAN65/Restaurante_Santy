@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Panel Bodega · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Panel de Bodega</h1>
+    <p class="text-sm text-text-secondary">Inventario, recepciones y correcciones · UTC-5</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'inventory:receipts' %}" class="btn-primary">Recepciones</a>
+    <a href="{% url 'inventory:corrections' %}" class="btn-secondary">Correcciones</a>
+  </div>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Valor del inventario</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ totals.total_value|usd }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Insumos activos</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ totals.total_ingredients }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Insumos críticos</p>
+    <p class="mt-2 text-2xl font-semibold text-danger">{{ totals.critical }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Fichas técnicas</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ totals.sheets }}</p>
+  </div>
+</div>
+
+<div class="mt-6 card p-5">
+  <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Insumos por debajo del mínimo</h2>
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {% for ing in inventory_items %}
+    <div class="flex items-center justify-between rounded-component border px-3 py-2">
+      <span class="text-sm text-text-primary">{{ ing.name }}</span>
+      <span class="text-sm font-medium text-danger">{{ ing.current_stock }}/{{ ing.min_stock }} {{ ing.unit }}</span>
+    </div>
+    {% empty %}
+    <p class="text-sm text-text-secondary">Todos los insumos están por encima del mínimo.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}PIN de autorización · Santy{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">PIN de autorización remota</h1>
+    <p class="text-sm text-text-secondary">Vigencia de {{ ttl_seconds }} segundos · un solo uso · registrado en auditoría · UTC-5</p>
+  </div>
+
+  {% if messages %}
+  <div class="mb-4 space-y-2" role="alert">
+    {% for message in messages %}
+    <div class="rounded-component border px-4 py-3 text-sm font-medium {% if message.tags == 'success' %}bg-primary-soft border-primary-soft text-primary-deep{% else %}bg-danger/10 border-danger/20 text-danger{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card mb-4 p-6">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Generar PIN</h2>
+    <form method="post" action="{% url 'audit:pin' %}" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="label" for="action">Acción sensible a autorizar</label>
+        <input id="action" type="text" name="action" class="input" value="Operación sensible" required>
+      </div>
+      <button type="submit" class="btn-primary w-full">Generar PIN (60 s)</button>
+    </form>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Validar PIN</h2>
+    <form method="post" action="{% url 'audit:pin_validate' %}" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="label" for="code">Código</label>
+        <input id="code" type="password" name="code" inputmode="numeric" maxlength="6" class="input font-mono text-center text-xl tracking-[0.5em]" placeholder="••••••" required>
+      </div>
+      <button type="submit" class="btn-primary w-full">Validar PIN</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Merma · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Registrar merma · Comanda #{{ order.pk }}</h1>
+    <p class="text-sm text-text-secondary">Mesa {{ order.table.number }} · La merma conserva el cargo original y genera alerta de reposición a $0.00 · UTC-5</p>
+  </div>
+  <a href="{% url 'kitchen:kds' %}" class="btn-secondary">Volver al KDS</a>
+</div>
+
+<div class="grid gap-4 lg:grid-cols-2">
+  <div class="card p-5">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Seleccionar ítem</h2>
+    {% for item in items %}
+    <form method="post" class="mb-3 rounded-component border p-4">
+      {% csrf_token %}
+      <input type="hidden" name="item_id" value="{{ item.pk }}">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="font-medium text-text-primary">{{ item.name }} × {{ item.quantity }}</span>
+        <span class="badge bg-primary-soft text-primary-deep">{{ item.subtotal|usd }}</span>
+      </div>
+      {% if item.cancelled_reason %}
+      <p class="text-xs font-medium text-danger">Cancelado: {{ item.cancelled_reason }}</p>
+      {% else %}
+      <label class="label" for="reason-{{ item.pk }}">Motivo de la merma</label>
+      <input id="reason-{{ item.pk }}" type="text" name="reason" class="input mb-2" placeholder="producto quemado, vencido…" required>
+      <label class="mb-2 flex items-center gap-2 text-sm text-text-primary">
+        <input type="checkbox" name="notify_waiter_replacement" class="h-4 w-4 rounded">
+        Notificar al Mesero reposición a $0.00
+      </label>
+      <button type="submit" class="btn-danger w-full text-xs">Registrar merma</button>
+      {% endif %}
+    </form>
+    {% empty %}
+    <p class="text-sm text-text-secondary">La comanda no tiene ítems.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card p-5">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Mermas de esta comanda</h2>
+    {% for s in shrinkages %}
+    <div class="mb-2 rounded-component border p-3 text-sm">
+      <p class="font-medium text-text-primary">{{ s.order_item.name }}</p>
+      <p class="mt-1 text-text-secondary">{{ s.reason }} · {{ s.registered_by }} · {{ s.registered_at|date:"d/m/Y H:i" }}</p>
+      {% if s.notify_waiter_replacement %}
+      <p class="mt-1 text-xs font-medium text-primary">Reposición a $0.00 solicitada al Mesero</p>
+      {% endif %}
+    </div>
+    {% empty %}
+    <p class="text-sm text-text-secondary">Aún no hay mermas registradas en esta comanda.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

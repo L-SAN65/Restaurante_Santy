@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Recepciones · Santy{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Recepciones de inventario</h1>
+  <p class="text-sm text-text-secondary">Registre lotes con costo y caducidad, luego confirme para aplicar stock · UTC-5</p>
+</div>
+
+<div class="grid gap-4 lg:grid-cols-2">
+  <form method="post" class="card space-y-4 p-5">
+    {% csrf_token %}
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-text-secondary">Nueva recepción</h2>
+    <div>
+      <label class="label" for="ingredient">Insumo</label>
+      <select id="ingredient" name="ingredient" class="input" required>
+        {% for ing in ingredients %}
+        <option value="{{ ing.pk }}">{{ ing.name }} ({{ ing.unit }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class="label" for="quantity">Cantidad</label>
+        <input id="quantity" type="number" name="quantity" min="0.001" step="0.001" class="input" required>
+      </div>
+      <div>
+        <label class="label" for="unit_cost">Costo unitario (USD)</label>
+        <input id="unit_cost" type="number" name="unit_cost" min="0" step="0.01" class="input" required>
+      </div>
+    </div>
+    <div>
+      <label class="label" for="lot">Lote</label>
+      <input id="lot" type="text" name="lot" class="input" required>
+    </div>
+    <div>
+      <label class="label" for="expiry_date">Caducidad (opcional)</label>
+      <input id="expiry_date" type="date" name="expiry_date" class="input">
+    </div>
+    <button type="submit" class="btn-primary w-full">Crear recepción</button>
+  </form>
+
+  <div class="card overflow-x-auto">
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Recepciones</h2>
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+          <th class="px-4 py-2">Insumo</th><th class="p-2">Cant.</th><th class="p-2">Costo</th><th class="p-2">Lote</th><th class="p-2">Estado</th><th class="p-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for receipt in receipts %}
+        <tr class="border-b border-slate-100">
+          <td class="px-4 py-2 font-medium">{{ receipt.ingredient.name }}</td>
+          <td class="p-2">{{ receipt.quantity }} {{ receipt.ingredient.unit }}</td>
+          <td class="p-2">{{ receipt.unit_cost|usd }}</td>
+          <td class="p-2">{{ receipt.lot }}</td>
+          <td class="p-2">
+            {% if receipt.confirmed %}
+            <span class="badge bg-primary-soft text-primary-deep">Confirmada</span>
+            {% else %}
+            <span class="badge bg-slate-100 text-slate-700">Pendiente</span>
+            {% endif %}
+          </td>
+          <td class="p-2">
+            {% if not receipt.confirmed %}
+            <form method="post" action="{% url 'inventory:receipt_confirm' receipt.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-primary text-xs">Confirmar</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="p-4 text-center text-text-secondary">Sin recepciones registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

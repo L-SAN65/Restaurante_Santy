@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}KDS · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Pantalla de cocina (KDS)</h1>
+    <p class="text-sm text-text-secondary">Semáforo: &lt;10 min verde · 10-20 amarillo · &gt;20 rojo · UTC-5</p>
+  </div>
+</div>
+
+{% if not tickets %}
+<div class="card p-8 text-center text-sm text-text-secondary">No hay comandas en espera ni en preparación.</div>
+{% endif %}
+
+<div class="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
+  {% for order in tickets %}
+  <div class="card overflow-hidden">
+    <div class="bg-kds-bg px-4 py-3 text-white">
+      <div class="flex justify-between">
+        <span class="font-semibold">Mesa {{ order.table.number }}</span>
+        <span class="text-sm">#{{ order.pk }}</span>
+      </div>
+      <div class="mt-1 flex items-center gap-2 text-xs text-white/70">
+        <span class="badge border {{ order.traffic_light|traffic_light_class }}">{{ order.elapsed_minutes }} min</span>
+        <span>{{ order.get_status_display }}</span>
+      </div>
+    </div>
+    <ul class="p-4 text-sm">
+      {% for item in order.items.all %}
+      <li class="flex justify-between border-b border-slate-100 py-1 last:border-0">
+        <span>{{ item.quantity }} × {{ item.name }}</span>
+        <span class="text-text-secondary">{{ item.subtotal|usd }}</span>
+      </li>
+      {% empty %}
+      <li class="text-text-secondary">Sin ítems.</li>
+      {% endfor %}
+    </ul>
+    <div class="flex flex-wrap gap-2 border-t border-slate-100 p-3">
+      {% if order.status == "WAITING" %}
+      <form method="post" action="{% url 'kitchen:order_start' order.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary text-xs">Iniciar preparación</button>
+      </form>
+      {% elif order.status == "PREPARING" %}
+      <form method="post" action="{% url 'kitchen:order_ready' order.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary text-xs">Marcar listo</button>
+      </form>
+      <a href="{% url 'kitchen:shrinkage' order.pk %}" class="btn-danger text-xs">Merma</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

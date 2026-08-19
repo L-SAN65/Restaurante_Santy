@@ -62,7 +62,7 @@ def reservation_portal(request):
             return redirect("reservations:portal")
 
         min_hours = config.min_reservation_hours
-        if (start_at - timezone.now()).total_seconds() < min_hours * 3600:
+        if (start_at - timezone.localtime()).total_seconds() < min_hours * 3600:
             messages.error(
                 request, f"La reserva requiere mínimo {min_hours} horas de anticipación."
             )
@@ -192,3 +192,143 @@ def reservation_detail(request, reservation_id):
         "status": reservation.get_status_display(),
         "tables": [t.number for t in reservation.tables.all()],
     })
+
+
+# ---------------------------------------------------------------------------
+# Sala / Mesero: plano de mesas, check-in y no-show (RF-04, RF-30, RF-31)
+# ---------------------------------------------------------------------------
+
+
+def _guard_waiter(request):
+    if request.user.role != Role.WAITER:
+        messages.error(request, "No tiene permisos para acceder a este módulo.")
+        return redirect(request.user.dashboard_url)
+    return None
+
+
+@login_required
+def floor_plan(request):
+    """Plano de salas del Mesero: estado real de cada mesa (propiedad `status`)."""
+    blocked = _guard_waiter(request)
+    if blocked:
+        return blocked
+
+    from kitchen.models import OrderStatus
+
+    tables = Table.objects.prefetch_related("orders")
+    table_rows = []
+    for table in tables:
+        active_order = table.orders.filter(
+            status__in=[
+                OrderStatus.WAITING,
+                OrderStatus.PREPARING,
+                OrderStatus.READY,
+            ]
+        ).first()
+        table_rows.append({
+            "table": table,
+            "status": table.status,
+            "active_order": active_order,
+            "has_order": active_order is not None,
+        })
+
+    return render(
+        request,
+        "reservations/floor_plan.html",
+        {"tables": table_rows},
+    )
+
+
+@login_required
+def checkin(request):
+    """Check-in de reserva: valida llegada, actualiza comensales y une mesas (RF-30)."""
+    blocked = _guard_waiter(request)
+    if blocked:
+        return blocked
+
+    reservations = None
+    selected = None
+    if request.method == "GET" and request.GET.get("cedula"):
+        reservations = Reservation.objects.filter(
+            client_cedula=request.GET.get("cedula").strip(),
+            status__in=[ReservationStatus.RESERVED, ReservationStatus.CONFIRMED],
+        )
+
+    if request.method == "POST":
+        reservation_id = request.POST.get("reservation_id")
+        real_people = request.POST.get("real_people", "").strip()
+        table_ids = request.POST.getlist("tables")
+
+        reservation = get_object_or_404(Reservation, pk=reservation_id)
+        try:
+            people = int(real_people)
+            if people <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            messages.error(request, "Ingrese un número de comensales válido.")
+            return redirect("reservations:checkin")
+
+        extra = Table.objects.filter(pk__in=table_ids, disabled=False)
+        total_capacity = sum(t.capacity for t in reservation.tables.all()) + sum(
+            t.capacity for t in extra
+        )
+        if total_capacity < people:
+            messages.error(request, "La capacidad de las mesas no cubre los comensales.")
+            return redirect("reservations:checkin")
+
+        reservation.guests = people
+        if extra:
+            reservation.tables.add(*extra)
+        reservation.status = ReservationStatus.CONFIRMED
+        reservation.save(update_fields=["guests", "status"])
+
+        from audit.models import ActionType, AuditLog, Result
+
+        AuditLog.log(
+            request.user,
+            ActionType.CHECK_IN,
+            Result.SUCCESS,
+            object_type="Reservation",
+            object_id=reservation.pk,
+            detail=f"Check-in de {people} comensales en {total_capacity} pax.",
+        )
+        messages.success(request, "Check-in registrado. Las mesas quedaron ocupadas.")
+        return redirect("reservations:checkin")
+
+    return render(
+        request,
+        "reservations/checkin.html",
+        {"reservations": reservations, "tables": Table.objects.filter(disabled=False)},
+    )
+
+
+@login_required
+def no_show(request):
+    """Registra no-show tras la tolerancia de 15 min (RF-04, RF-31)."""
+    blocked = _guard_waiter(request)
+    if blocked:
+        return blocked
+
+    if request.method == "POST":
+        reservation_id = request.POST.get("reservation_id")
+        reservation = get_object_or_404(Reservation, pk=reservation_id)
+        try:
+            reservation.register_no_show()
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect("reservations:checkin")
+
+        from audit.models import ActionType, AuditLog, Result
+
+        AuditLog.log(
+            request.user,
+            ActionType.NO_SHOW,
+            Result.SUCCESS,
+            object_type="Reservation",
+            object_id=reservation.pk,
+            detail=f"No-show de {reservation.client_email} (mesa {reservation.start_at:%H:%M} UTC-5).",
+        )
+        messages.success(request, "No-show registrado. Las mesas quedaron disponibles.")
+        return redirect("reservations:checkin")
+
+    return redirect("reservations:checkin")

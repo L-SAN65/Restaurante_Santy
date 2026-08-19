@@ -53,6 +53,13 @@ class Table(models.Model):
         if active.exists():
             return TableStatus.OCCUPIED
 
+        from kitchen.models import OrderStatus
+
+        if self.orders.filter(
+            status__in=[OrderStatus.WAITING, OrderStatus.PREPARING, OrderStatus.READY]
+        ).exists():
+            return TableStatus.OCCUPIED
+
         upcoming = self.reservations.filter(
             status=ReservationStatus.RESERVED,
             start_at__gt=now,

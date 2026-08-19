@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Anular factura · Santy{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Anular factura #{{ invoice.pk }}</h1>
+    <p class="text-sm text-text-secondary">Operación restringida al Administrador. Requiere PIN vigente (60 s, un solo uso).</p>
+  </div>
+
+  <div class="card mb-4 p-5">
+    <dl class="space-y-1 text-sm">
+      <div class="flex justify-between"><dt class="text-text-secondary">Fecha</dt><dd>{{ invoice.issued_at|date:"d/m/Y H:i" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-text-secondary">Total</dt><dd>{{ invoice.total|usd }}</dd></div>
+      <div class="flex justify-between"><dt class="text-text-secondary">Cliente</dt><dd>{{ invoice.client_name|default:"—" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card mb-4 p-5 text-sm text-text-secondary">
+    Al anular se conserva el comprobante (estado "Anulada") y la operación queda registrada en la bitácora inmutable.
+  </div>
+
+  <div class="card p-5">
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+      {% for message in messages %}
+      <div class="rounded-component bg-danger/10 border border-danger/20 px-4 py-3 text-sm font-medium text-danger">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="label" for="pin">PIN de autorización</label>
+        <input id="pin" type="password" name="pin" inputmode="numeric" maxlength="6" class="input font-mono" placeholder="••••••" required>
+        <span class="text-xs text-text-secondary">Genere un PIN nuevo en la sección Bitácora → PIN.</span>
+      </div>
+      <button type="submit" class="btn-danger w-full">Confirmar anulación</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Bitácora · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Bitácora de auditoría</h1>
+    <p class="text-sm text-text-secondary">Registro inmutable de operaciones críticas · UTC-5</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'audit:pin' %}" class="btn-primary">Generar PIN</a>
+    <a href="{% url 'audit:pin_validate' %}" class="btn-secondary">Validar PIN</a>
+  </div>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="w-full text-left text-sm">
+    <thead>
+      <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+        <th class="px-4 py-2">Fecha (UTC-5)</th><th class="p-2">Usuario</th><th class="p-2">Acción</th>
+        <th class="p-2">Resultado</th><th class="p-2">Objeto</th><th class="p-2">Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="px-4 py-2 whitespace-nowrap">{{ entry.timestamp|date:"d/m/Y H:i:s" }}</td>
+        <td class="p-2">{{ entry.user|default:"—sistema" }}</td>
+        <td class="p-2 font-medium">{{ entry.get_action_display }}</td>
+        <td class="p-2">
+          {% if entry.result == "SUCCESS" %}
+          <span class="badge bg-primary-soft text-primary-deep">Éxito</span>
+          {% else %}
+          <span class="badge bg-red-100 text-red-800">Fallo</span>
+          {% endif %}
+        </td>
+        <td class="p-2 text-text-secondary">{{ entry.object_type }}{% if entry.object_id %} #{{ entry.object_id }}{% endif %}</td>
+        <td class="p-2 text-text-secondary">{{ entry.detail|truncatechars:80 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="p-4 text-center text-text-secondary">La bitácora está vacía.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="mt-4 flex items-center gap-2 text-xs text-text-secondary">
+  <svg class="h-4 w-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+  Los registros de auditoría son inmutables: ningún rol operativo puede editarlos ni eliminarlos.
+</p>
+{% endblock %}

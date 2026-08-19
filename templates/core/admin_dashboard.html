@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Panel Administrador · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Panel de Administración</h1>
+    <p class="text-sm text-text-secondary">Resumen operativo de Santy · UTC-5</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'billing:reports' %}" class="btn-secondary">Reportes</a>
+    <a href="{% url 'audit:trail' %}" class="btn-secondary">Bitácora</a>
+  </div>
+</div>
+
+{% with metrics=metrics %}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Ventas hoy</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ today_total|usd }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Comandas activas</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ active_orders }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Insumos críticos</p>
+    <p class="mt-2 text-2xl font-semibold text-danger">{{ low_stock }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Mesas ocupadas</p>
+    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ occupied_tables }} / {{ table_count }}</p>
+  </div>
+</div>
+{% endwith %}
+
+<div class="mt-6 grid gap-4 lg:grid-cols-2">
+  <div class="card p-5">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Accesos directos</h2>
+    <div class="grid gap-2">
+      <a href="{% url 'audit:pin' %}" class="btn-secondary">Generar PIN de autorización</a>
+      <a href="{% url 'inventory:corrections' %}" class="btn-secondary">Revisar correcciones de inventario</a>
+      <a href="/admin/" class="btn-secondary">Django Admin</a>
+    </div>
+  </div>
+  <div class="card p-5">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Configuración de negocio</h2>
+    <p class="text-sm text-text-secondary">
+      IVA, horario, tolerancias y fidelización se editan desde <span class="font-mono text-xs">core.BusinessConfig</span>
+      en el Django Admin. Todos los módulos leen estos valores en tiempo real.
+    </p>
+  </div>
+</div>
+{% endblock %}

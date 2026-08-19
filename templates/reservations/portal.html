@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Reservas · Santy{% endblock %}
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary to-primary-deep p-4">
+  <div class="w-full max-w-2xl space-y-6">
+    <div class="text-center">
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-2xl font-bold text-primary">S</span>
+      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-white">Reservar en Santy</h1>
+      <p class="text-sm text-white/80">Bloques de 2 horas · Horario 10:00 – 00:00 · UTC-5</p>
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2" role="alert">
+      {% for message in messages %}
+      <div class="rounded-component bg-white/15 px-4 py-3 text-sm font-medium text-white border border-white/20">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="rounded-card bg-white p-6 shadow-modal space-y-4">
+      {% csrf_token %}
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="email">Email del cliente</label>
+          <input id="email" type="email" name="email" class="input" required>
+        </div>
+        <div>
+          <label class="label" for="cedula">Cédula</label>
+          <input id="cedula" type="text" name="cedula" class="input" required>
+        </div>
+        <div>
+          <label class="label" for="date">Fecha</label>
+          <input id="date" type="date" name="date" class="input" required>
+        </div>
+        <div>
+          <label class="label" for="time">Horario</label>
+          <input id="time" type="time" name="time" class="input" min="10:00" max="23:30" step="1800" required>
+        </div>
+        <div>
+          <label class="label" for="guests">Comensales</label>
+          <select id="guests" name="guests" class="input" required>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="tables">Mesas (ctrl/clic para varias)</label>
+          <select id="tables" name="tables" multiple size="4" class="input" required>
+            {% for table in tables %}
+            <option value="{{ table.pk }}">Mesa {{ table.number }} ({{ table.capacity }} pax)</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="label" for="notes">Notas (opcional)</label>
+        <textarea id="notes" name="notes" rows="2" class="input"></textarea>
+      </div>
+      <button type="submit" class="btn-primary w-full">Confirmar reserva</button>
+      <p class="text-center text-xs text-text-secondary">Reserva mínima con 12 horas de anticipación. La mesa queda reservada por 2 horas.</p>
+    </form>
+
+    {% if dishes %}
+    <div class="rounded-card bg-white p-6 shadow-modal">
+      <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Nuestro menú</h2>
+      <div class="grid gap-2 sm:grid-cols-2">
+        {% for dish in dishes %}
+        <div class="flex justify-between rounded-component border px-3 py-2 text-sm">
+          <span>{{ dish.name }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center text-white/80">
+      <a href="{% url 'reservations:client_login' %}" class="font-medium text-white underline">¿Ya tiene cuenta de cliente? Ingrese aquí</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

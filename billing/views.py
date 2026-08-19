@@ -1,15 +1,16 @@
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from core.models import Role
 
-from .models import CashRegister, CashRegisterStatus, Invoice, InvoiceStatus
+from .models import CashRegister, CashRegisterStatus, Invoice, InvoiceStatus, PaymentType
 
 
 def _parse_date(value):
@@ -356,3 +357,211 @@ def cash_register_close(request):
         return redirect("billing:cash_register_open")
 
     return render(request, "billing/cash_register_close.html", {"register": register})
+
+
+# ---------------------------------------------------------------------------
+# Facturación: emisión (RF-07), cobro parcial (RF-09), anulación (RF-08)
+# ---------------------------------------------------------------------------
+
+
+def _compute_totals(subtotal):
+    """Aplica IVA configurable y redondea a 2 decimales."""
+    from core.models import BusinessConfig
+
+    config = BusinessConfig.objects.get(pk=1)
+    subtotal = Decimal(str(subtotal)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    vat_amount = (subtotal * config.vat_rate).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    return subtotal, vat_amount, subtotal + vat_amount
+
+
+@login_required
+def invoice_list(request):
+    """Lista de facturas y cuentas listas para cobro (RF-07)."""
+    blocked = _guard_cashier(request)
+    if blocked:
+        return blocked
+
+    from django.utils import timezone
+    from kitchen.models import Order, OrderStatus
+
+    billable = (
+        Order.objects.filter(status=OrderStatus.DELIVERED, invoice__isnull=True)
+        .select_related("table", "waiter")
+        .prefetch_related("items")
+    )
+    today = timezone.localdate()
+    invoices = Invoice.objects.filter(issued_at__date=today).select_related("order__table")
+    return render(
+        request,
+        "billing/invoice_list.html",
+        {"billable": billable, "invoices": invoices},
+    )
+
+
+@login_required
+def invoice_create(request, order_id):
+    """Emite factura sobre una comanda: calcula IVA, cobra y libera la mesa."""
+    blocked = _guard_cashier(request)
+    if blocked:
+        return blocked
+
+    from django.db import transaction
+    from django.utils import timezone
+    from audit.models import ActionType, AuditLog, Result
+    from kitchen.models import Order, OrderStatus
+    from loyalty.models import LoyaltyMovement
+
+    order = get_object_or_404(Order, pk=order_id)
+    if order.status != OrderStatus.DELIVERED:
+        messages.error(request, "La comanda debe estar entregada para facturar.")
+        return redirect("billing:invoice_list")
+
+    if hasattr(order, "invoice"):
+        messages.error(request, "Esta comanda ya tiene factura.")
+        return redirect("billing:invoice_list")
+
+    from core.models import BusinessConfig
+
+    config = BusinessConfig.objects.get(pk=1)
+    items = order.items.all()
+    subtotal = sum((i.quantity * i.unit_price for i in items), Decimal("0"))
+    subtotal, vat_amount, total = _compute_totals(subtotal)
+
+    context = {
+        "order": order,
+        "items": items,
+        "subtotal": subtotal,
+        "vat_amount": vat_amount,
+        "total": total,
+    }
+
+    if request.method == "POST":
+        client_name = request.POST.get("client_name", "").strip()
+        client_cedula = request.POST.get("client_cedula", "").strip()
+        paid_raw = request.POST.get("paid_amount", "").strip()
+        points_raw = request.POST.get("redeem_points", "").strip()
+
+        # Canje opcional de puntos (RF-16)
+        discount = Decimal("0")
+        if points_raw:
+            try:
+                points = int(points_raw)
+                discount = Decimal(str(
+                    LoyaltyMovement.redeem(client_cedula, points, float(subtotal))
+                ))
+                subtotal -= discount
+                subtotal, vat_amount, total = _compute_totals(subtotal)
+            except ValueError as exc:
+                messages.error(request, str(exc))
+                return redirect("billing:invoice_create", order_id=order.pk)
+
+        try:
+            paid = Decimal(str(float(paid_raw)))
+        except (TypeError, ValueError):
+            paid = total
+
+        try:
+            with transaction.atomic():
+                register = CashRegister.objects.filter(status=CashRegisterStatus.OPEN).first()
+                invoice = Invoice.objects.create(
+                    register=register,
+                    order=order,
+                    client_name=client_name,
+                    client_cedula=client_cedula,
+                    subtotal=subtotal,
+                    vat_rate=config.vat_rate,
+                    vat_amount=vat_amount,
+                    total=total,
+                    paid_amount=paid,
+                    payment_type=PaymentType.PARTIAL if paid < total else PaymentType.FULL,
+                    status=InvoiceStatus.DRAFT,
+                )
+                invoice.issue()
+
+                if invoice.client_cedula:
+                    LoyaltyMovement.accrue_for_invoice(invoice)
+                if paid < total:
+                    # RF-09: saldo pendiente asignado a la cédula
+                    AuditLog.log(
+                        request.user,
+                        ActionType.INVOICE_ISSUE,
+                        Result.SUCCESS,
+                        object_type="Invoice",
+                        object_id=invoice.pk,
+                        detail=f"Saldo pendiente de {invoice.remaining_balance} USD a la cédula {client_cedula}.",
+                    )
+                AuditLog.log(
+                    request.user,
+                    ActionType.INVOICE_ISSUE,
+                    Result.SUCCESS,
+                    object_type="Invoice",
+                    object_id=invoice.pk,
+                    detail=f"Factura #{invoice.pk} · total {invoice.total} USD · {invoice.get_payment_type_display()}.",
+                )
+        except Exception as exc:  # pragma: no cover
+            messages.error(request, f"No fue posible emitir la factura: {exc}")
+            return redirect("billing:invoice_list")
+
+        messages.success(
+            request,
+            f"Factura #{invoice.pk} emitida · Total ${invoice.total:.2f} · "
+            f"Pago ${invoice.paid_amount:.2f}.",
+        )
+        return redirect("billing:invoice_list")
+
+    return render(request, "billing/invoice_create.html", context)
+
+
+@login_required
+def invoice_detail(request, invoice_id):
+    """Detalle de una factura emitida (read-only)."""
+    blocked = _guard_cashier(request)
+    if blocked:
+        return blocked
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    return render(request, "billing/invoice_detail.html", {"invoice": invoice})
+
+
+@login_required
+def invoice_annul(request, invoice_id):
+    """Anulación de factura Emitida: solo Administrador + PIN vigente (RF-08)."""
+    if request.user.role != Role.ADMIN:
+        messages.error(request, "No tiene permisos para acceder a este módulo.")
+        return redirect(request.user.dashboard_url)
+
+    from audit.models import ActionType, AuditLog, PinToken, Result
+
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+
+    if request.method == "POST":
+        code = request.POST.get("pin", "").strip()
+        token = PinToken.objects.filter(code=code).order_by("-issued_at").first()
+        if token is None or not token.is_valid:
+            AuditLog.log(
+                request.user,
+                ActionType.ANULATION,
+                Result.FAILURE,
+                object_type="Invoice",
+                object_id=invoice.pk,
+                detail="Intento de anulación sin PIN vigente.",
+            )
+            messages.error(request, "PIN inválido o expirado. La anulación fue denegada.")
+            return redirect("billing:invoice_detail", invoice_id=invoice.pk)
+
+        token.consumed_at = timezone.now()
+        token.save(update_fields=["consumed_at"])
+        invoice.annul(request.user)
+        AuditLog.log(
+            request.user,
+            ActionType.ANULATION,
+            Result.SUCCESS,
+            object_type="Invoice",
+            object_id=invoice.pk,
+            detail=f"Factura #{invoice.pk} anulada ({invoice.total} USD).",
+        )
+        messages.success(request, f"Factura #{invoice.pk} anulada. Comprobante conservado.")
+        return redirect("audit:trail")
+
+    return render(request, "billing/invoice_annul.html", {"invoice": invoice})

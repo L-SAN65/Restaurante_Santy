@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Correcciones · Santy{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Correcciones de inventario</h1>
+  <p class="text-sm text-text-secondary">Las recepciones confirmadas son inmutables; las correcciones requieren aprobación del Administrador · UTC-5</p>
+</div>
+
+<div class="grid gap-4 lg:grid-cols-2">
+  <form method="post" class="card space-y-4 p-5">
+    {% csrf_token %}
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-text-secondary">Nueva solicitud</h2>
+    <div>
+      <label class="label" for="receipt">Recepción confirmada</label>
+      <select id="receipt" name="receipt" class="input" required>
+        {% for receipt in confirmed_receipts %}
+        <option value="{{ receipt.pk }}">{{ receipt.ingredient.name }} × {{ receipt.quantity }} {{ receipt.ingredient.unit }} ({{ receipt.lot }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="label" for="difference_quantity">Diferencia de cantidad</label>
+      <input id="difference_quantity" type="number" name="difference_quantity" step="0.001" class="input" required>
+      <span class="text-xs text-text-secondary">Positiva agrega stock, negativa lo reduce.</span>
+    </div>
+    <div>
+      <label class="label" for="reason">Justificación</label>
+      <textarea id="reason" name="reason" rows="3" class="input" required></textarea>
+    </div>
+    <button type="submit" class="btn-primary w-full">Solicitar corrección</button>
+  </form>
+
+  <div class="card overflow-x-auto">
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Solicitudes</h2>
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+          <th class="px-4 py-2">Insumo</th><th class="p-2">Diferencia</th><th class="p-2">Estado</th><th class="p-2">Revisión</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr class="border-b border-slate-100">
+          <td class="px-4 py-2 font-medium">{{ req.receipt.ingredient.name }}</td>
+          <td class="p-2">{{ req.difference_quantity }} {{ req.receipt.ingredient.unit }}</td>
+          <td class="p-2">
+            {% if req.status == "PENDING" %}
+            <span class="badge bg-amber-100 text-amber-800">Pendiente de Aprobación</span>
+            {% elif req.status == "APPROVED" %}
+            <span class="badge bg-primary-soft text-primary-deep">Aprobada</span>
+            {% else %}
+            <span class="badge bg-red-100 text-red-800">Rechazada</span>
+            {% endif %}
+          </td>
+          <td class="p-2">
+            {% if req.status == "PENDING" and user.role == "ADMIN" %}
+            <div class="flex gap-1.5">
+              <form method="post" action="{% url 'inventory:correction_review' req.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="btn-primary text-xs">Aprobar</button>
+              </form>
+              <form method="post" action="{% url 'inventory:correction_review' req.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" class="btn-danger text-xs">Rechazar</button>
+              </form>
+            </div>
+            {% elif req.reviewed_by %}
+            <span class="text-xs text-text-secondary">{{ req.reviewed_by }}</span>
+            {% else %}
+            <span class="text-xs text-text-secondary">Pendiente de revisión</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="p-4 text-center text-text-secondary">Sin solicitudes de corrección.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

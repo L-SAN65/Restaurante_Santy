@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Cierre ciego de caja · Santy{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Cierre ciego de caja</h1>
+    <p class="text-sm text-text-secondary">Declare el efectivo en caja <strong>sin ver el saldo esperado</strong> (evita manipulación) · UTC-5</p>
+  </div>
+
+  <div class="card p-5">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="label" for="declared_cash">Efectivo declarado (USD)</label>
+        <input id="declared_cash" type="number" name="declared_cash" min="0" step="0.01" class="input" required autofocus>
+      </div>
+
+      {% if register.status == "UNRECONCILED" %}
+      <div>
+        <label class="label" for="justification">Justificación del descuadre (obligatoria)</label>
+        <textarea id="justification" name="justification" rows="3" class="input" placeholder="Explique la diferencia…" required></textarea>
+        {% if register.difference %}
+        <p class="mt-1 text-xs font-medium text-danger">Descuadre detectado: {{ register.difference|usd }}. La justificación es obligatoria para completar el cierre.</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn-primary w-full">Cerrar caja (ciego)</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

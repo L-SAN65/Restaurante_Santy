@@ -5,6 +5,8 @@ Configurado para Supabase (PostgreSQL en la nube), Vercel deployment,
 zona horaria operativa UTC-5 y aplicaciones modulares por dominio.
 """
 
+import sys
+import os
 from pathlib import Path
 
 import environ
@@ -20,7 +22,8 @@ env = environ.Env(
 environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
-DEBUG = env("DEBUG")
+# DEBUG nunca se activa en Vercel (build + runtime), aunque .env.local diga lo contrario.
+DEBUG = env("DEBUG") and os.environ.get("VERCEL") != "1"
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
@@ -31,7 +34,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third-party
-    "channels",
     "crispy_forms",
     "crispy_tailwind",
     # Módulos de dominio
@@ -72,7 +74,6 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = "santy.asgi.application"
 WSGI_APPLICATION = "santy.wsgi.application"
 
 # ---------------------------------------------------------------------------
@@ -137,12 +138,18 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Los tests no requieren manifest hasheado (evita depender de npm run build).
+if "test" in sys.argv:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": STATICFILES_STORAGE,
     },
 }
 
@@ -152,16 +159,6 @@ STORAGES = {
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
-
-# ---------------------------------------------------------------------------
-# Channels (realtime KDS y estados de mesa)
-# ---------------------------------------------------------------------------
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    }
-}
 
 # ---------------------------------------------------------------------------
 # Email

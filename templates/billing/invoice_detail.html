@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Factura #{{ invoice.pk }} · Santy{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Factura #{{ invoice.pk }}</h1>
+    <p class="text-sm text-text-secondary">Emitida {{ invoice.issued_at|date:"d/m/Y H:i" }} · UTC-5</p>
+  </div>
+  <div class="flex gap-2">
+    {% if invoice.status == "ISSUED" and user.role == "ADMIN" %}
+    <a href="{% url 'billing:invoice_annul' invoice.pk %}" class="btn-danger">Anular</a>
+    {% endif %}
+    <a href="{% url 'billing:invoice_list' %}" class="btn-secondary">Volver</a>
+  </div>
+</div>
+
+<div class="card max-w-xl p-6">
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <p class="text-xl font-semibold text-text-primary">Santy</p>
+      <p class="text-xs text-text-secondary">Restaurante · UTC-5</p>
+    </div>
+    <span class="badge {{ invoice.status|badge_class }}">{{ invoice.get_status_display }}</span>
+  </div>
+
+  <dl class="space-y-2 border-b border-slate-200 pb-4 text-sm">
+    {% if invoice.order %}
+    <div class="flex justify-between"><dt class="text-text-secondary">Mesa</dt><dd>{{ invoice.order.table.number }}</dd></div>
+    {% endif %}
+    <div class="flex justify-between"><dt class="text-text-secondary">Cliente</dt><dd>{{ invoice.client_name|default:"—" }}</dd></div>
+    <div class="flex justify-between"><dt class="text-text-secondary">Cédula</dt><dd>{{ invoice.client_cedula|default:"—" }}</dd></div>
+  </dl>
+
+  {% if invoice.order %}
+  <ul class="my-4 text-sm">
+    {% for item in invoice.order.items.all %}
+    <li class="flex justify-between border-b border-slate-100 py-2">
+      <span>{{ item.quantity }} × {{ item.name }}</span><span>{{ item.subtotal|usd }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <dl class="space-y-1 text-sm">
+    <div class="flex justify-between"><dt class="text-text-secondary">Subtotal</dt><dd>{{ invoice.subtotal|usd }}</dd></div>
+    <div class="flex justify-between"><dt class="text-text-secondary">IVA ({{ invoice.vat_rate|floatformat:"0" }}%)</dt><dd>{{ invoice.vat_amount|usd }}</dd></div>
+    <div class="flex justify-between text-lg font-semibold"><dt>Total</dt><dd>{{ invoice.total|usd }}</dd></div>
+    <div class="flex justify-between text-sm"><dt class="text-text-secondary">Pagado</dt><dd>{{ invoice.paid_amount|usd }}</dd></div>
+    {% if invoice.remaining_balance > 0 %}
+    <div class="flex justify-between text-sm font-semibold text-danger"><dt>Saldo pendiente</dt><dd>{{ invoice.remaining_balance|usd }}</dd></div>
+    {% endif %}
+  </dl>
+</div>
+{% endblock %}

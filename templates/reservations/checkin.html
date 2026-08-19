@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Check-in · Santy{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Check-in de reservas</h1>
+  <p class="text-sm text-text-secondary">Valide la llegada del cliente, actualice comensales o registre no-show · UTC-5</p>
+</div>
+
+<div class="card mb-6 p-5">
+  <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Buscar por cédula</h2>
+  <form method="get" class="flex flex-col gap-3 sm:flex-row">
+    <input type="text" name="cedula" value="{{ request.GET.cedula }}" class="input" placeholder="Cédula del cliente" aria-label="Cédula del cliente">
+    <button type="submit" class="btn-primary">Buscar</button>
+  </form>
+</div>
+
+{% if request.GET.cedula and not reservations %}
+<div class="card p-5 text-sm text-text-secondary">No se encontraron reservas activas para esa cédula.</div>
+{% endif %}
+
+{% for reservation in reservations %}
+<div class="card mb-4 p-5">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div>
+      <h3 class="font-semibold text-text-primary">{{ reservation.client_email }} · {{ reservation.guests }} pax</h3>
+      <p class="text-xs text-text-secondary">
+        {{ reservation.start_at|date:"d/m/Y H:i" }} a {{ reservation.end_at|date:"H:i" }} ·
+        {{ reservation.get_status_display }}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <span class="badge bg-blue-100 text-blue-800">{{ reservation.tables.count }} mesa(s)</span>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'reservations:checkin' %}" class="flex flex-wrap items-end gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="reservation_id" value="{{ reservation.pk }}">
+    <div>
+      <label class="label" for="real-{{ reservation.pk }}">Comensales reales</label>
+      <input id="real-{{ reservation.pk }}" type="number" name="real_people" min="1" value="{{ reservation.guests }}" class="input w-28">
+    </div>
+    <div>
+      <label class="label" for="tables-{{ reservation.pk }}">Unir mesas (opcional)</label>
+      <select id="tables-{{ reservation.pk }}" name="tables" multiple class="input w-64" size="3">
+        {% for table in tables %}
+        <option value="{{ table.pk }}">Mesa {{ table.number }} ({{ table.capacity }} pax)</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary">Registrar check-in</button>
+  </form>
+
+  <form method="post" action="{% url 'reservations:no_show' %}" class="mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="reservation_id" value="{{ reservation.pk }}">
+    <button type="submit" class="btn-danger text-xs">Marcar no-show (tras 15 min de gracia)</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

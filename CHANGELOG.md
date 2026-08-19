@@ -1,9 +1,26 @@
 # CHANGELOG — Santy POS
 
-Registro de todos los cambios realizados en la sesión de setup del proyecto.
+Registro de todos los cambios realizados en el proyecto, organizado por sesión.
 
-> **Fecha:** 2026-08-17
-> **Estado inicial del repo:** solo existían `docs/BDD/*`, `Requisitos_...md`, `.agents/`, `opencode.json` y `skills-lock.json` (commit `890970d`). No existía código de aplicación.
+---
+
+> **Fecha:** 2026-08-19
+> **Objetivo:** corregir la suite de tests (`python manage.py test`) hasta dejarla completamente verde (28/28) y arreglar bugs detectados por los tests.
+
+| Archivo | Descripción |
+|---|---|
+| `santy/settings.py` | Tests usan `StaticFilesStorage` (sin manifest WhiteNoise) para no depender de `npm run build` + `collectstatic` |
+| `billing/views.py` | Import faltante `get_object_or_404` (fallaba `invoice_create` y `invoice_annul`) |
+| `billing/models.py` | `CashRegister.close_blind()` ahora calcula saldo esperado = `opening_fund + total_billed` (antes omitía el fondo inicial) |
+| `templates/partials/sidebar.html` | Se elimina el enlace "Mermas" (apuntaba a `kitchen:shrinkage` sin `order_id`, URL inválida) |
+| `templates/inventory/dashboard.html` | Nueva tabla "Insumos activos" con todos los insumos (antes solo se listaban críticos) |
+| `core/tests.py` | `test_login_redirects_by_role` ahora hace logout entre iteraciones (la sesión persistía y desviaba el redirect) |
+| `reservations/views.py` | `reservation_portal` compara anticipación contra `timezone.localtime()` (antes UTC, desfase de 5 h en UTC-5) |
+| `reservations/tests.py` | Tests de portal corrigen login del cliente y usan hora local (UTC-5) para fechas de reserva |
+
+**Evidencia:** `python manage.py check` → 0 issues; `python manage.py test` → 28/28 OK.
+
+---
 
 ---
 

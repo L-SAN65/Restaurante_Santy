@@ -1,19 +1,9 @@
 {
-  "builds": [
-    {
-      "src": "santy/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "includeFiles": "templates/**,static/**,app.json" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python build.py",
+  "functions": {
+    "santy/wsgi.py": {
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "(.*)",
-      "dest": "santy/wsgi.py"
-    }
-  ]
+  }
 }
