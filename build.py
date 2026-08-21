@@ -33,7 +33,7 @@ def main() -> None:
 
     if os.environ.get("VERCEL_ENV") == "production":
         print("-> Aplicando migraciones (producción)")
-        call_command("migrate", interactive=False, noinput=True)
+        call_command("migrate", interactive=False)
     else:
         print(f"-> VERCEL_ENV={os.environ.get('VERCEL_ENV')!r}; omitiendo migrate")
 
