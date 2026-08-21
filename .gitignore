@@ -8,3 +8,5 @@ node_modules/
 staticfiles/
 .DS_Store
 *.log
+.vercel
+.env*
