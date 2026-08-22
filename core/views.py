@@ -409,6 +409,28 @@ def user_management(request):
             messages.success(request, f"Cuenta {target.email} desbloqueada.")
             return redirect("core:user_management")
 
+        if action == "change_password" and target:
+            # Solo ADMIN puede cambiar clave del personal (no CLIENT)
+            if target.role == Role.CLIENT:
+                messages.error(request, "Las claves de clientes no se cambian aquí. El cliente usa recuperación propia.")
+                return redirect("core:user_management")
+            new_password = request.POST.get("new_password", "").strip()
+            if len(new_password) < 8:
+                messages.error(request, "La nueva contraseña debe tener al menos 8 caracteres.")
+                return redirect("core:user_management")
+            target.set_password(new_password)
+            target.save(update_fields=["password"])
+            # Desbloquear por si estaba suspendida
+            try:
+                target.reset_login_attempts()
+            except Exception:
+                pass
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="User", object_id=target.pk,
+                         detail=f"Cambio de clave por ADMIN para {target.email} ({target.get_role_display()})")
+            messages.success(request, f"Contraseña de {target.email} actualizada. El usuario debe usar la nueva clave en el próximo inicio de sesión.")
+            return redirect("core:user_management")
+
         if action == "create":
             email = request.POST.get("email", "").strip().lower()
             cedula = request.POST.get("cedula", "").strip()

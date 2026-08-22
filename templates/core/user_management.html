@@ -156,15 +156,34 @@
             {% if u.failed_login_count %}<div class="text-[11px] text-text-secondary mt-1">fallos {{ u.failed_login_count }}</div>{% endif %}
           </td>
           <td class="px-6 py-4 text-right">
-            {% if u.is_permanently_locked or u.suspended_until %}
-            <form method="post" class="inline-flex">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="unlock">
-              <input type="hidden" name="user_id" value="{{ u.pk }}">
-              <button type="submit" class="btn-ghost !py-2 !px-4 text-xs border border-outline-variant/30 whitespace-nowrap">Desbloquear</button>
-            </form>
-            {% else %}
-            <span class="text-xs text-text-secondary">—</span>
+            <div class="flex flex-wrap justify-end gap-1">
+              {% if u.role != "CLIENT" %}
+              <button type="button" onclick="togglePwd('{{ u.pk }}')" class="btn-ghost !py-2 !px-3 text-xs border border-outline-variant/30" aria-expanded="false" aria-controls="pwd-{{ u.pk }}">Clave</button>
+              {% endif %}
+              {% if u.is_permanently_locked or u.suspended_until %}
+              <form method="post" class="inline-flex">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="unlock">
+                <input type="hidden" name="user_id" value="{{ u.pk }}">
+                <button type="submit" class="btn-ghost !py-2 !px-4 text-xs border border-amber-300 text-amber-800 whitespace-nowrap">Desbloquear</button>
+              </form>
+              {% endif %}
+            </div>
+            {% if u.role != "CLIENT" %}
+            <div id="pwd-{{ u.pk }}" class="hidden mt-2 rounded-component border border-outline-variant/30 bg-surface-containerLow p-3 text-left">
+              <p class="text-xs font-medium text-text-primary">Cambiar clave (solo ADMIN)</p>
+              <p class="text-[11px] text-text-secondary">Mín. 8 caracteres. Se desbloquea la cuenta y debe usar la nueva clave.</p>
+              <form method="post" class="mt-2 flex gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                <input type="hidden" name="user_id" value="{{ u.pk }}">
+                <input type="password" name="new_password" class="input !py-1.5 text-sm flex-1" placeholder="Nueva contraseña" required minlength="8" autocomplete="new-password">
+                <button type="submit" class="btn-primary !py-1.5 !px-3 text-xs">Guardar</button>
+              </form>
+            </div>
+            {% endif %}
+            {% if u.role == "CLIENT" and not u.is_permanently_locked and not u.suspended_until %}
+            <div class="text-xs text-text-secondary mt-1 text-right">—</div>
             {% endif %}
           </td>
         </tr>
@@ -198,12 +217,28 @@
       btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Nuevo personal';
     }
   }
+  function togglePwd(id) {
+    const el = document.getElementById('pwd-' + id);
+    if (!el) return;
+    const isHidden = el.classList.contains('hidden');
+    // cerrar otros
+    document.querySelectorAll('[id^="pwd-"]').forEach(e => e.classList.add('hidden'));
+    if (isHidden) {
+      el.classList.remove('hidden');
+      el.querySelector('input[name="new_password"]')?.focus();
+    } else {
+      el.classList.add('hidden');
+    }
+  }
   document.getElementById('toggle-new-user').addEventListener('click', () => toggleNewUser());
   // Si hubo error en el form de creación, abrir automáticamente
   {% if messages %}
     {% for message in messages %}
       {% if 'Ya existe' in message.message or 'obligatorios' in message.message or 'Rol no válido' in message.message %}
         toggleNewUser(true);
+      {% endif %}
+      {% if 'contraseña' in message.message|lower %}
+        // mantener panel abierto si error de clave
       {% endif %}
     {% endfor %}
   {% endif %}
