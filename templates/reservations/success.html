@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Reserva confirmada · Santy{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-[#fbf9f4] flex flex-col">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-outline-variant/30">
+    <div class="mx-auto max-w-[1440px] px-4 lg:px-10 h-16 flex items-center justify-between">
+      <a href="{% url 'reservations:menu' %}" class="font-display text-xl font-semibold text-text-primary">Luxe Dining <span class="font-sans text-xs tracking-[0.2em] text-text-secondary">SANTY</span></a>
+      <a href="{% url 'reservations:my_reservations' %}" class="text-sm text-primary underline">Mis reservas</a>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-10 lg:px-10">
+    <div class="mx-auto max-w-2xl text-center">
+      <div class="card p-8 md:p-10">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white text-2xl">✓</div>
+        <h1 class="mt-4 font-display text-3xl font-semibold text-text-primary">¡Reserva confirmada!</h1>
+        <p class="mt-2 text-sm text-text-secondary">Referencia <span class="font-mono font-bold text-text-primary">LX-{{ reservation.pk|stringformat:"04d" }}</span> · Bloque de 2 h · UTC-5</p>
+
+        <div class="mt-6 rounded-component bg-surface-containerLow border border-outline-variant/20 p-5 text-left">
+          <div class="grid gap-3 text-sm">
+            <div class="flex justify-between"><span class="text-text-secondary">Fecha y hora</span><span class="font-medium text-text-primary">{{ reservation.start_at|date:"d/m/Y H:i" }} → {{ reservation.end_at|date:"H:i" }}</span></div>
+            <div class="flex justify-between"><span class="text-text-secondary">Comensales</span><span class="font-medium text-text-primary">{{ reservation.guests }} pax</span></div>
+            <div class="flex justify-between"><span class="text-text-secondary">Mesas</span><span class="font-medium text-text-primary">{% for t in reservation.tables.all %}Mesa {{ t.number }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></div>
+            <div class="flex justify-between"><span class="text-text-secondary">Email</span><span class="font-mono text-xs text-text-primary">{{ reservation.client_email }}</span></div>
+            <div class="flex justify-between"><span class="text-text-secondary">Estado</span><span class="badge bg-emerald-50 border border-emerald-200 text-emerald-700">{{ reservation.get_status_display }}</span></div>
+          </div>
+          <p class="mt-3 text-xs text-text-secondary">Presenta esta referencia en recepción. Tolerancia de no-show: 15 min (RF-31). Cancelación autónoma hasta 4 h antes (RF-33).</p>
+        </div>
+
+        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+          <a href="{% url 'reservations:my_reservations' %}" class="btn-primary text-center">Ver mis reservas</a>
+          <a href="{% url 'reservations:menu' %}" class="btn-secondary text-center border border-outline-variant/30">Volver al menú</a>
+        </div>
+        <p class="mt-4 text-xs text-text-secondary">¿Otra visita? <a href="{% url 'reservations:portal' %}" class="underline">Reservar de nuevo</a></p>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

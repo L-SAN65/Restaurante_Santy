@@ -1,7 +1,7 @@
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   {% for card in metrics %}
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">{{ card.label }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">{{ card.label }}</p>
     <p class="mt-2 text-2xl font-semibold text-text-primary">{{ card.value }}</p>
     {% if card.hint %}<p class="mt-1 text-xs text-text-secondary">{{ card.hint }}</p>{% endif %}
   </div>

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Usuarios y roles · Santy{% endblock %}
+{% block extra_head %}
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { transition: none !important; }
+  }
+  .reveal {
+    transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+    overflow: hidden;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <h1 class="font-display text-3xl font-semibold tracking-tight text-text-primary">Gestión de usuarios y roles</h1>
+    <p class="mt-1 text-sm text-text-secondary">Solo Administrador · RF-01 / RF-34 · Cambios auditados en bitácora · UTC-5</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="toggle-new-user" type="button" aria-expanded="false" aria-controls="new-user-panel" class="btn-primary inline-flex items-center gap-2 !px-5 !py-2.5">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nuevo personal
+    </button>
+    <a href="{% url 'core:admin_dashboard' %}" class="btn-ghost text-sm border border-outline-variant/30">← Panel</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="mb-4 space-y-2">
+  {% for message in messages %}
+  <div class="rounded-component border px-4 py-3 text-sm {% if message.tags == 'error' %}bg-danger/10 border-danger/20 text-danger{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-surface-containerLow border-outline-variant/30 text-text-secondary{% endif %}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Panel desplegable de alta de personal -->
+<div id="new-user-panel" class="reveal hidden card mb-6 p-0 overflow-hidden border-primary/20">
+  <div class="bg-gradient-to-r from-primary/5 via-primary/0 to-transparent px-6 py-4 border-b border-outline-variant/20 flex items-center justify-between">
+    <div>
+      <h2 class="text-base font-semibold text-text-primary">Registrar nuevo personal</h2>
+      <p class="text-xs text-text-secondary">El email será el usuario. Alta directa sin pasar por registro cliente. Rol obligatorio. Auditoría en bitácora.</p>
+    </div>
+    <button type="button" onclick="toggleNewUser(false)" class="text-text-secondary hover:text-text-primary p-2" aria-label="Cerrar">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <form method="post" class="p-6 grid gap-4 md:grid-cols-2">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div>
+      <label class="label">Email *</label>
+      <input type="email" name="email" class="input" placeholder="nuevo@santy.com" required autocomplete="email">
+    </div>
+    <div>
+      <label class="label">Nombre</label>
+      <input type="text" name="first_name" class="input" placeholder="Nombre del colaborador">
+    </div>
+    <div>
+      <label class="label">Cédula</label>
+      <input type="text" name="cedula" class="input" placeholder="8-123-456">
+    </div>
+    <div>
+      <label class="label">Rol *</label>
+      <select name="role" class="input" required>
+        <option value="" disabled selected>Seleccione rol</option>
+        {% for val,label in roles %}
+          {% if val != "CLIENT" %}
+          <option value="{{ val }}">{{ label }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <p class="mt-1 text-[11px] text-text-secondary">CLIENT se crea vía registro público, no aquí.</p>
+    </div>
+    <div class="md:col-span-2">
+      <label class="label">Contraseña *</label>
+      <input type="password" name="password" class="input" placeholder="Mínimo 8 caracteres" required autocomplete="new-password">
+    </div>
+    <div class="md:col-span-2 flex flex-wrap gap-3 pt-2">
+      <button type="submit" class="btn-primary !px-8">Crear usuario</button>
+      <button type="button" onclick="toggleNewUser(false)" class="btn-ghost border border-outline-variant/30">Cancelar</button>
+      <span class="text-xs text-text-secondary self-center">Se enviará a revisar en bitácora · El usuario deberá cambiar contraseña en primer acceso (recomendado).</span>
+    </div>
+  </form>
+</div>
+
+<!-- Tabla grande de roles -->
+<div class="card overflow-hidden p-0">
+  <div class="border-b border-outline-variant/20 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-surface-containerLow">
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-[0.08em] text-text-secondary">Usuarios y accesos por función</h2>
+      <p class="text-xs text-text-secondary">Tabla amplia · {{ users|length }} usuario(s) · El rol determina el dashboard y los módulos visibles (sidebar)</p>
+    </div>
+    <div class="flex flex-wrap gap-2 text-[11px]">
+      <span class="badge bg-white border border-outline-variant/30">ADMIN total</span>
+      <span class="badge bg-white border border-outline-variant/30">UTC-5</span>
+    </div>
+  </div>
+
+  <!-- Leyenda de accesos -->
+  <div class="px-6 py-3 bg-amber-50/50 border-b border-outline-variant/20 grid gap-2 md:grid-cols-3 text-xs leading-relaxed">
+    <div><span class="font-semibold text-text-primary">ADMIN</span> <span class="text-text-secondary">→</span> Usuarios/roles, Reportes y análisis, Inventario completo, Bitácora, PIN, Configuración negocio</div>
+    <div><span class="font-semibold text-text-primary">Cajero</span> <span class="text-text-secondary">→</span> Caja, Facturación, Puntos Fidelización</div>
+    <div><span class="font-semibold text-text-primary">Mesero</span> <span class="text-text-secondary">→</span> Plano salas, Check-in / No-show, Toma de comanda, Segmentar cuenta</div>
+    <div><span class="font-semibold text-text-primary">Chef</span> <span class="text-text-secondary">→</span> KDS (semáforo), Mermas</div>
+    <div><span class="font-semibold text-text-primary">Bodega</span> <span class="text-text-secondary">→</span> Inventario, Recepciones, Correcciones</div>
+    <div><span class="font-semibold text-text-primary">Cliente</span> <span class="text-text-secondary">→</span> Menú público, Reservas (3 pasos), Mis reservas</div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="border-b border-outline-variant/20 bg-surface-containerLow/50 text-xs uppercase tracking-[0.06em] text-text-secondary">
+          <th class="px-6 py-4 font-semibold">Usuario</th>
+          <th class="px-4 py-4 font-semibold">Rol</th>
+          <th class="px-4 py-4 font-semibold">Accesos según función</th>
+          <th class="px-4 py-4 font-semibold">Estado</th>
+          <th class="px-6 py-4 font-semibold text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="text-[14px]">
+        {% for u in users %}
+        <tr class="border-b border-outline-variant/10 hover:bg-surface-containerLow/50 transition-colors">
+          <td class="px-6 py-4">
+            <div class="font-semibold text-text-primary text-[15px]">{{ u.email }}</div>
+            <div class="text-xs text-text-secondary font-mono mt-0.5">{{ u.username }} · cédula {{ u.cedula|default:"—" }} {% if u.first_name %}· {{ u.first_name }}{% endif %}</div>
+          </td>
+          <td class="px-4 py-4">
+            <form method="post" class="flex items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="change_role">
+              <input type="hidden" name="user_id" value="{{ u.pk }}">
+              <select name="role" class="input !py-2 !px-2 text-sm w-44">
+                {% for val,label in roles %}
+                <option value="{{ val }}" {% if u.role == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn-secondary !py-2 !px-3 text-xs shrink-0">Guardar</button>
+            </form>
+          </td>
+          <td class="px-4 py-4 max-w-[32ch]">
+            <div class="text-xs leading-relaxed">
+              {% if u.role == "ADMIN" %}<span class="font-medium text-text-primary">Total:</span> <span class="text-text-secondary">Usuarios, Reportes, Inventario, Bitácora, PIN</span>
+              {% elif u.role == "CASHIER" %}<span class="font-medium text-text-primary">Caja y facturación:</span> <span class="text-text-secondary">Apertura/cierre ciego, facturas, cobros, puntos</span>
+              {% elif u.role == "WAITER" %}<span class="font-medium text-text-primary">Sala y servicio:</span> <span class="text-text-secondary">Plano, check-in, comandas, segmentar cuenta</span>
+              {% elif u.role == "CHEF" %}<span class="font-medium text-text-primary">Cocina:</span> <span class="text-text-secondary">KDS + semáforo &lt;10/10-20/&gt;20 min, mermas</span>
+              {% elif u.role == "WAREHOUSE" %}<span class="font-medium text-text-primary">Bodega:</span> <span class="text-text-secondary">Inventario, recepciones, correcciones (aprueba ADMIN)</span>
+              {% elif u.role == "CLIENT" %}<span class="font-medium text-text-primary">Cliente:</span> <span class="text-text-secondary">Menú, portal reservas 3 pasos, mis reservas</span>
+              {% else %}<span class="text-text-secondary">—</span>{% endif %}
+            </div>
+          </td>
+          <td class="px-4 py-4">
+            {% if u.is_permanently_locked %}<span class="badge bg-danger-container text-danger border border-danger/20 text-xs">Bloqueada</span>
+            {% elif u.suspended_until %}<span class="badge bg-amber-100 text-amber-800 border border-amber-200 text-xs">Suspendida 15 min</span>
+            {% else %}<span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs">Activa</span>{% endif %}
+            {% if u.failed_login_count %}<div class="text-[11px] text-text-secondary mt-1">fallos {{ u.failed_login_count }}</div>{% endif %}
+          </td>
+          <td class="px-6 py-4 text-right">
+            {% if u.is_permanently_locked or u.suspended_until %}
+            <form method="post" class="inline-flex">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="unlock">
+              <input type="hidden" name="user_id" value="{{ u.pk }}">
+              <button type="submit" class="btn-ghost !py-2 !px-4 text-xs border border-outline-variant/30 whitespace-nowrap">Desbloquear</button>
+            </form>
+            {% else %}
+            <span class="text-xs text-text-secondary">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="px-6 py-3 bg-surface-containerLow border-t border-outline-variant/20 flex flex-wrap items-center justify-between gap-2 text-xs text-text-secondary">
+    <span>Los cambios de rol y desbloqueos quedan en <a href="{% url 'audit:trail' %}" class="underline font-medium text-primary">Bitácora inmutable</a> · No puede quitarse su propio ADMIN.</span>
+    <a href="{% url 'audit:pin' %}" class="underline">Generar PIN →</a>
+  </div>
+</div>
+
+<p class="mt-6 text-center text-xs text-text-secondary">
+  <a href="{% url 'inventory:dashboard' %}" class="underline">Ir a Inventario</a> · <a href="{% url 'billing:reports' %}" class="underline">Reportes y análisis</a> · <a href="/admin/" class="underline">Django Admin avanzado</a>
+</p>
+
+<script>
+  function toggleNewUser(force) {
+    const panel = document.getElementById('new-user-panel');
+    const btn = document.getElementById('toggle-new-user');
+    const willShow = force !== undefined ? force : panel.classList.contains('hidden');
+    if (willShow) {
+      panel.classList.remove('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Cerrar';
+      panel.scrollIntoView({behavior: 'smooth', block: 'start'});
+    } else {
+      panel.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Nuevo personal';
+    }
+  }
+  document.getElementById('toggle-new-user').addEventListener('click', () => toggleNewUser());
+  // Si hubo error en el form de creación, abrir automáticamente
+  {% if messages %}
+    {% for message in messages %}
+      {% if 'Ya existe' in message.message or 'obligatorios' in message.message or 'Rol no válido' in message.message %}
+        toggleNewUser(true);
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</script>
+{% endblock %}

@@ -18,7 +18,7 @@
   {% endif %}
 
   <div class="card mb-4 p-6">
-    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Generar PIN</h2>
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Generar PIN</h2>
     <form method="post" action="{% url 'audit:pin' %}" class="space-y-4">
       {% csrf_token %}
       <div>
@@ -30,7 +30,7 @@
   </div>
 
   <div class="card p-6">
-    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Validar PIN</h2>
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Validar PIN</h2>
     <form method="post" action="{% url 'audit:pin_validate' %}" class="space-y-4">
       {% csrf_token %}
       <div>

@@ -76,13 +76,13 @@
 </style>
 {% endblock %}
 {% block body %}
-<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary to-primary-deep p-4">
-  <div class="login-card card w-full max-w-md p-8 shadow-modal backdrop-blur-xl bg-white/80 border border-white/20 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary-deep/5" aria-hidden="true"></div>
+<div class="flex min-h-screen items-center justify-center bg-[#fbf9f4] p-4">
+  <div class="login-card card w-full max-w-md p-8 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-surface-containerLow to-surface-container/50 pointer-events-none" aria-hidden="true"></div>
     <div class="relative z-10">
       <div class="mb-6 flex flex-col items-center">
-        <span class="logo-mark stagger-1 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white shadow-lg shadow-primary/30">S</span>
-        <h1 class="stagger-2 mt-4 text-2xl font-semibold tracking-tight text-text-primary">Portal de Clientes</h1>
+        <span class="logo-mark stagger-1 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white">S</span>
+        <h1 class="stagger-2 mt-4 font-display text-2xl font-semibold tracking-tight text-text-primary">Portal de Clientes</h1>
         <p class="stagger-3 text-sm text-text-secondary">Acceda para ver y gestionar sus reservas</p>
       </div>
 
@@ -98,6 +98,7 @@
 
       <form method="post" class="space-y-4" novalidate>
         {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
         <div class="stagger-4">
           <label for="username" class="label">Email</label>
           <input type="email" id="username" name="username" class="input" placeholder="su@email.com" required autofocus autocomplete="email" aria-describedby="username-hint">
@@ -115,13 +116,13 @@
         </div>
         <button type="submit" class="btn-primary w-full stagger-4">Ingresar</button>
         <p class="stagger-4 text-center text-sm text-text-secondary">
-          <a href="#" class="text-primary hover:underline transition-colors duration-150">¿Olvidó su contraseña?</a>
+          <a href="#" class="text-text-primary underline decoration-outline-variant underline-offset-4 hover:decoration-primary transition-colors duration-150">¿Olvidó su contraseña?</a>
         </p>
       </form>
 
-      <div class="stagger-5 mt-6 text-center">
-        <p class="text-sm text-text-secondary">¿No tiene cuenta?</p>
-        <a href="{% url 'reservations:portal' %}" class="text-primary hover:underline font-medium transition-colors duration-150">Reservar una mesa</a>
+      <div class="stagger-5 mt-6 text-center space-y-2">
+        <p class="text-sm text-text-secondary">¿No tiene cuenta? <a href="{% url 'reservations:client_register' %}{% if next %}?next={{ next }}{% endif %}" class="text-primary hover:text-primary-hover font-medium underline decoration-outline-variant underline-offset-4 transition-colors duration-150">Cree una aquí</a></p>
+        <p class="text-xs text-text-secondary"><a href="{% url 'reservations:menu' %}" class="underline">Ver menú sin cuenta</a> · <a href="{% url 'core:login' %}" class="underline">Soy personal</a></p>
       </div>
     </div>
   </div>

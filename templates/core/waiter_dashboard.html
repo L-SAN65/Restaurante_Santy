@@ -4,39 +4,39 @@
 {% block content %}
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
   <div>
-    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Panel de Mesero</h1>
-    <p class="text-sm text-text-secondary">Gestión de salas y comandas · UTC-5</p>
+    <h1 class="font-display text-2xl font-semibold tracking-tight text-text-primary">Panel de Mesero</h1>
+    <p class="text-sm text-text-secondary">Gestión de salas y comandas · UTC-5 — Servicio Haute</p>
   </div>
   <div class="flex gap-2">
     <a href="{% url 'reservations:floor_plan' %}" class="btn-primary">Plano de salas</a>
-    <a href="{% url 'reservations:checkin' %}" class="btn-secondary">Check-in</a>
+    <a href="{% url 'reservations:checkin' %}" class="btn-ghost">Check-in</a>
   </div>
 </div>
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Disponibles</p>
-    <p class="mt-2 text-2xl font-semibold text-primary">{{ counts.available }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Disponibles</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ counts.available }}</p>
   </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Ocupadas</p>
-    <p class="mt-2 text-2xl font-semibold text-amber-600">{{ counts.occupied }}</p>
+  <div class="card p-5 bg-primary text-white border-primary">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-white/70">Ocupadas</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-white">{{ counts.occupied }}</p>
   </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Reservadas</p>
-    <p class="mt-2 text-2xl font-semibold text-blue-600">{{ counts.reserved }}</p>
+  <div class="card p-5 bg-secondary-container border-secondary-container">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-[#574500]">Reservadas</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-[#241a00]">{{ counts.reserved }}</p>
   </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Bloqueadas</p>
-    <p class="mt-2 text-2xl font-semibold text-red-600">{{ counts.blocked }}</p>
+  <div class="card p-5 bg-danger-container/30 border-danger/20">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-danger">Bloqueadas</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-danger">{{ counts.blocked }}</p>
   </div>
 </div>
 
 <div class="mt-6 card p-5">
-  <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Mesas</h2>
+  <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Mesas</h2>
   <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
     {% for table in tables %}
-    <div class="flex items-center justify-between rounded-component border px-3 py-2">
+    <div class="flex items-center justify-between rounded-component border border-outline-variant/30 bg-surface-containerLow px-3 py-2">
       <span class="text-sm font-medium text-text-primary">Mesa {{ table.number }}</span>
       <span class="badge {{ table.status|badge_class }}">{{ table.status|table_status_label }}</span>
     </div>

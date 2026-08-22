@@ -127,21 +127,30 @@ Restaurante_Santy/
 
 ## 6. Pantallas del DISEÑO.md → templates
 
-| Screen ID | Ruta esperada |
-|---|---|
-| `login` | `templates/core/login.html` ✅ |
-| `admin_dashboard` | `templates/core/admin_dashboard.html` ✅ |
-| `waiter_floor_plan` | `templates/core/waiter_dashboard.html` (esqueleto) |
-| `waiter_order_creation` | futura |
-| `waiter_account_segmentation` | futura |
-| `waiter_checkin` | futura |
-| `kds_main` | `templates/core/chef_dashboard.html` (esqueleto) |
-| `kds_shrinkage` | futura |
-| `cashier_billing` | `templates/core/cashier_dashboard.html` (esqueleto) |
-| `cashier_cash_closing` | futura |
-| `inventory_dashboard` | `templates/core/warehouse_dashboard.html` (esqueleto) |
-| `reservation_portal_*` | futura |
-| `audit_trail` | `templates/audit/trail.html` ✅ |
+| Screen ID | Ruta esperada | Estado |
+|---|---|---|
+| `menu_public` | `templates/reservations/menu.html` | ✅ público sin login (QR/menú digital) — landing `/` → menu |
+| `client_login` | `templates/reservations/login.html` | ✅ solo Role.CLIENT (formulario separado del personal) |
+| `client_register` | `templates/reservations/register.html` | ✅ registro cliente (Role.CLIENT) con `?next=` |
+| `reservation_portal_step1` | `templates/reservations/step1_details.html` | ✅ Luxe paso 1: fecha/hora/comensales (12 h, 10:00–00:00) |
+| `reservation_portal_step2` | `templates/reservations/step2_tables.html` | ✅ paso 2: selección visual de mesas con validación capacidad/bloque 2 min |
+| `reservation_portal_step3` | `templates/reservations/step3_confirm.html` | ✅ paso 3: confirmación y creación + `success.html` (ref. LX-XXXX) |
+| `reservation_portal_my` | `templates/reservations/my_reservations.html` | ✅ mis reservas + cancelación ≥4 h |
+| `reservation_portal` legacy | `templates/reservations/portal.html` | ✅ compatibilidad 1-paso (tests) |
+| `staff_login` | `templates/core/staff_login.html` | ✅ solo personal (ADMIN/CASHIER/WAITER/CHEF/WAREHOUSE) — rechaza CLIENT |
+| `login` legacy | `templates/core/login.html` | ⚠️ conservado, ya no se usa (staff usa `staff_login.html`) |
+| `admin_dashboard` | `templates/core/admin_dashboard.html` | ✅ con accesos a roles/inventario/reportes |
+| `user_management` | `templates/core/user_management.html` | ✅ ADMIN: gestión de roles (RF-01) + desbloqueo (RF-02/03) |
+| `waiter_floor_plan` | `templates/core/waiter_dashboard.html` + `templates/reservations/floor_plan.html` | ✅ |
+| `waiter_order_creation` | `templates/kitchen/order_create.html` | ✅ RF-20 |
+| `waiter_account_segmentation` | `templates/kitchen/account_segmentation.html` | ✅ RF-22 |
+| `waiter_checkin` | `templates/reservations/checkin.html` + `/reservas/sala/checkin/` | ✅ RF-30 |
+| `kds_main` | `templates/core/chef_dashboard.html` + `templates/kitchen/kds.html` | ✅ |
+| `kds_shrinkage` | `templates/kitchen/shrinkage.html` | ✅ RF-06 |
+| `cashier_billing` | `templates/core/cashier_dashboard.html` + `templates/billing/invoice_*.html` | ✅ |
+| `cashier_cash_closing` | `templates/billing/cash_register_*.html` | ✅ RF-10/11/25/26 |
+| `inventory_dashboard` | `templates/core/warehouse_dashboard.html` + `templates/inventory/dashboard.html` | ✅ |
+| `audit_trail` | `templates/audit/trail.html` | ✅ |
 
 ---
 
@@ -174,7 +183,6 @@ python manage.py runserver
 
 ## 8. Pendientes (siguiente fase)
 
-- Mapear las 20+ pantallas Stitch restantes a templates (tabla §6).
 - Suscripción **Supabase Realtime** en el navegador (KDS / estados de mesa) con RLS + partials **HTMX** como fallback.
-- Vistas de facturación, cierre ciego, reservas (portal cliente) e inventario.
 - Tests de aceptación a partir de `docs/BDD/*.feature`.
+- Pulido visual del flujo Luxe (animaciones Stitch DESIGN.md) y estados vacíos.

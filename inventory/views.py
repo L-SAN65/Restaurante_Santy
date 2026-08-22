@@ -14,7 +14,7 @@ from .models import (
 
 
 def _guard_warehouse(request):
-    if request.user.role != Role.WAREHOUSE:
+    if request.user.role not in (Role.WAREHOUSE, Role.ADMIN):
         messages.error(request, "No tiene permisos para acceder a este módulo.")
         return redirect(request.user.dashboard_url)
     return None

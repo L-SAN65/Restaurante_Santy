@@ -11,17 +11,17 @@
 </div>
 
 <div class="mb-4 flex flex-wrap gap-2 text-xs">
-  <span class="badge bg-mesa-disponible text-primary-deep">Disponible</span>
-  <span class="badge bg-blue-100 text-blue-800">Reservada</span>
-  <span class="badge bg-amber-100 text-amber-800">Ocupada</span>
-  <span class="badge bg-red-100 text-red-800">Bloqueada</span>
+  <span class="badge bg-surface-containerHigh text-text-primary border border-outline-variant/20">Disponible</span>
+  <span class="badge bg-secondary-container text-[#574500]">Reservada</span>
+  <span class="badge bg-primary text-white">Ocupada</span>
+  <span class="badge bg-danger-container text-danger">Bloqueada</span>
 </div>
 
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
   {% for row in tables %}
-  <div class="card p-4">
+  <div class="card p-4 card-hover">
     <div class="mb-2 flex items-center justify-between">
-      <span class="text-base font-semibold text-text-primary">Mesa {{ row.table.number }}</span>
+      <span class="font-display text-base font-semibold text-text-primary">Mesa {{ row.table.number }}</span>
       <span class="badge {{ row.status|badge_class }}">{{ row.status|table_status_label }}</span>
     </div>
     <p class="text-xs text-text-secondary">Capacidad: {{ row.table.capacity }} pax</p>
@@ -32,7 +32,7 @@
     {% endif %}
     <div class="mt-3 flex flex-col gap-1.5">
       {% if row.status == "OCCUPIED" and row.has_order %}
-      <a href="{% url 'kitchen:account_segmentation' row.active_order.pk %}" class="btn-secondary w-full text-xs">Segmentar cuenta</a>
+      <a href="{% url 'kitchen:account_segmentation' row.active_order.pk %}" class="btn-ghost w-full text-xs">Segmentar cuenta</a>
       {% elif row.status != "OCCUPIED" %}
       <a href="{% url 'kitchen:order_create' row.table.pk %}" class="btn-primary w-full text-xs">Tomar comanda</a>
       {% else %}

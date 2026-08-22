@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Reservar · Paso 3 · Santy{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-[#fbf9f4] flex flex-col">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-outline-variant/30">
+    <div class="mx-auto max-w-[1440px] px-4 lg:px-10 h-16 flex items-center justify-between">
+      <a href="{% url 'reservations:menu' %}" class="font-display text-xl font-semibold text-text-primary">Luxe Dining <span class="font-sans text-xs tracking-[0.2em] text-text-secondary">SANTY</span></a>
+      <span class="text-xs text-text-secondary">Paso 3 de 3</span>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 lg:px-10">
+    <div class="mx-auto max-w-3xl">
+      <div class="mb-6 flex items-center gap-2 text-xs">
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white">✓</span><span class="text-emerald-700">Fecha</span>
+        <span class="h-px flex-1 bg-emerald-200"></span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white">✓</span><span class="text-emerald-700">Mesa</span>
+        <span class="h-px flex-1 bg-emerald-200"></span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold">3</span><span class="font-semibold text-text-primary">Confirmar</span>
+      </div>
+
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-component border px-4 py-3 text-sm {% if message.tags == 'error' %}bg-danger/10 border-danger/20 text-danger{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="card p-6 md:p-8">
+        <h1 class="font-display text-2xl font-semibold text-text-primary">Confirma tu reserva</h1>
+        <p class="mt-1 text-sm text-text-secondary">{{ date }} · {{ time }} → {{ end_at|date:"H:i" }} · {{ guests }} pax · Bloque 2 h · UTC-5</p>
+
+        <div class="mt-4 rounded-component bg-surface-containerLow border border-outline-variant/20 p-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">Mesas seleccionadas</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            {% for t in tables %}
+            <span class="rounded-full bg-white border border-outline-variant/30 px-3 py-1 text-sm">Mesa {{ t.number }} — {{ t.capacity }} pax</span>
+            {% endfor %}
+          </div>
+          <p class="mt-2 text-xs text-text-secondary">Capacidad total: {{ tables|length }} mesa(s) · Si necesitas ajustar, <a href="{% url 'reservations:table_select' %}" class="underline">vuelve al paso 2</a>.</p>
+        </div>
+
+        <form method="post" class="mt-6 space-y-4">
+          {% csrf_token %}
+          <div>
+            <label for="full_name" class="label">Nombre completo</label>
+            <input type="text" id="full_name" name="full_name" class="input" value="{{ initial.full_name }}" placeholder="Tu nombre">
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="email" class="label">Email *</label>
+              <input type="email" id="email" name="email" class="input" value="{{ initial.email }}" required>
+            </div>
+            <div>
+              <label for="phone" class="label">Teléfono</label>
+              <input type="tel" id="phone" name="phone" class="input" value="{{ initial.phone }}" placeholder="+507 6000-0000">
+            </div>
+          </div>
+          <div>
+            <label for="notes" class="label">Notas (opcional)</label>
+            <textarea id="notes" name="notes" rows="2" class="input" placeholder="Alergias, ocasión especial, preferencia de sala..."></textarea>
+            <p class="mt-1 text-[11px] text-text-secondary">Opcional — visible para el mesero en el check-in.</p>
+          </div>
+
+          <div class="rounded-component bg-amber-50 border border-amber-200 p-3 text-xs leading-relaxed text-amber-900">
+            Al confirmar aceptas: reserva de 2 h exactas, tolerancia de no-show 15 min (RF-31), y cancelación autónoma solo con ≥ 4 h de anticipación (RF-33).
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <a href="{% url 'reservations:table_select' %}" class="btn-secondary">← Elegir otra mesa</a>
+            <button type="submit" class="btn-primary !px-8">Confirmar reserva</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

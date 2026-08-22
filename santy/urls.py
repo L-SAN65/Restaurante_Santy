@@ -3,7 +3,8 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="core:login", permanent=False)),
+    # Landing público: menú accesible sin login (QR / digital) — primer paso del flujo cliente
+    path("", RedirectView.as_view(pattern_name="reservations:menu", permanent=False)),
     path("admin/", admin.site.urls),
     path("", include("core.urls")),
     path("reservas/", include("reservations.urls")),

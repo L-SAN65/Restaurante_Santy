@@ -1,9 +1,12 @@
-<aside class="flex w-16 shrink-0 flex-col items-center border-r border-slate-200 bg-surface-card py-4 lg:w-56 lg:items-stretch lg:px-3">
-  <div class="mb-6 flex items-center justify-center gap-2">
+<aside class="flex w-16 shrink-0 flex-col items-center border-r border-outline-variant/30 bg-surface-card py-4 lg:w-56 lg:items-stretch lg:px-3">
+  <div class="mb-6 flex items-center justify-center gap-2 lg:justify-start">
     <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">S</span>
-    {% if user.is_authenticated %}
-    <span class="hidden lg:block text-sm font-semibold text-text-primary">{{ user.first_name|default:user|truncatechars:16 }}</span>
-    {% endif %}
+    <div class="hidden lg:block">
+      {% if user.is_authenticated %}
+      <span class="block text-sm font-semibold leading-none text-text-primary">{{ user.first_name|default:user|truncatechars:16 }}</span>
+      <span class="block text-[10px] font-semibold uppercase tracking-[0.08em] text-text-secondary">{{ user.get_role_display|default:user.role }}</span>
+      {% endif %}
+    </div>
   </div>
 
   <nav class="flex flex-1 flex-col gap-1" aria-label="Navegación principal">
@@ -13,9 +16,17 @@
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
       <span class="hidden lg:inline">Panel</span>
     </a>
+    <a href="{% url 'core:user_management' %}" class="nav-link">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <span class="hidden lg:inline">Usuarios y roles</span>
+    </a>
     <a href="{% url 'billing:reports' %}" class="nav-link">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       <span class="hidden lg:inline">Reportes</span>
+    </a>
+    <a href="{% url 'inventory:dashboard' %}" class="nav-link">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17v-10"/></svg>
+      <span class="hidden lg:inline">Inventario</span>
     </a>
     <a href="{% url 'audit:trail' %}" class="nav-link">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z"/></svg>

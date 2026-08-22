@@ -6,61 +6,99 @@
   html {
     font-family: Inter, system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #1e293b;
+    background-color: #fbf9f4;
+    color: #1b1c19;
+  }
+
+  /* Playfair para headings — Haute editorial */
+  h1, h2, h3, .font-display {
+    font-family: "Playfair Display", serif;
   }
 }
 
 @layer components {
-  /* Botones base Stitch: altura 40px, padding 16px, radius 8px */
+  /* Botones Haute: 40px, radius 8px, craft motion sutil */
   .btn {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-component px-4 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-component px-4 text-sm font-medium transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+    transition-duration: 100ms;
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-hover focus:ring-primary;
+    @apply btn bg-primary text-white hover:bg-[#1b1b1c] focus-visible:ring-primary border border-transparent;
   }
 
+  /* Secondary Gold — CTA premium Haute */
   .btn-secondary {
-    @apply btn border border-slate-300 bg-white text-text-primary hover:bg-slate-50 focus:ring-slate-400;
+    @apply btn bg-secondary-container text-[#241a00] hover:bg-secondary-fixedDim border border-transparent focus-visible:ring-secondary;
+  }
+
+  .btn-ghost {
+    @apply btn border border-primary/20 bg-transparent text-primary hover:bg-surface-containerHigh focus-visible:ring-primary;
   }
 
   .btn-danger {
-    @apply btn bg-danger text-white hover:bg-red-600 focus:ring-danger;
+    @apply btn bg-danger text-white hover:bg-[#93000a] focus-visible:ring-danger;
   }
 
-  /* Inputs Stitch: altura 40px, border 1px, focus ring verde */
+  /* Inputs Haute: border #E5E1D8 (outline-variant), focus charcoal */
   .input {
-    @apply h-10 w-full rounded-component border border-slate-300 bg-white px-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+    @apply h-10 w-full rounded-component border border-outline-variant bg-white px-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+    transition: border-color 150ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  textarea.input {
+    @apply h-auto min-h-[80px] py-2;
+  }
+
+  select.input {
+    @apply pr-8;
   }
 
   .label {
-    @apply mb-1 block text-sm font-medium text-text-primary;
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary;
   }
 
+  /* Cards Tonal Layers L1: white + 1px #E5E1D8, sin sombra pesada */
   .card {
-    @apply rounded-card bg-surface-card shadow-card;
+    @apply rounded-card border border-outline-variant/30 bg-surface-card;
+    box-shadow: 0 1px 2px rgba(27,28,25,0.06), 0 1px 8px rgba(27,28,25,0.04);
   }
 
-  /* Badge Stitch: radio completo, padding 4px 12px */
+  .card-hover:hover {
+    box-shadow: 0 4px 12px rgba(27,28,25,0.08);
+    transform: translateY(-1px);
+    transition: box-shadow 150ms ease-out, transform 150ms ease-out;
+  }
+
+  /* Badge pill desaturado */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-badge px-3 py-0.5 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-badge px-3 py-1 text-xs font-semibold tracking-wide;
   }
 
-  /* Scrim overlay para modales */
+  /* Scrim overlay */
   .scrim {
-    @apply fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4;
+    @apply fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm;
   }
 
-  /* Navegación sidebar camino del logo */
+  /* Sidebar nav Haute */
   .nav-link {
-    @apply flex w-full items-center justify-center gap-2 rounded-component px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-bg hover:text-text-primary lg:justify-start;
+    @apply flex w-full items-center justify-center gap-2 rounded-component px-3 py-2 text-sm font-medium text-text-secondary transition-colors duration-150 hover:bg-surface-container hover:text-text-primary lg:justify-start;
+  }
+  .nav-link.active {
+    @apply bg-primary text-white hover:bg-primary hover:text-white;
   }
 }
 
+/* Motion sutil — preferencias del usuario */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -69,4 +107,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Animaciones utilitarias Haute — <300ms ease-out fuerte */
+@keyframes fadeScaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

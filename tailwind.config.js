@@ -13,56 +13,87 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Sistema de diseño Stitch (DESIGN.md)
+        // Haute Management — DESIGN.md (Corporate Modern Minimalist)
         primary: {
-          DEFAULT: "#22C55E",
-          hover: "#16A34A",
-          soft: "#BBF7D0",
-          deep: "#166534",
+          DEFAULT: "#000000",
+          hover: "#1b1b1c",
+          soft: "#e5e2e3",
+          deep: "#1b1b1c",
+          container: "#1b1b1c",
+          fixed: "#e5e2e3",
+          fixedDim: "#c8c6c7",
+        },
+        secondary: {
+          DEFAULT: "#735c00",
+          container: "#fed65b",
+          fixed: "#ffe088",
+          fixedDim: "#e9c349",
         },
         warning: {
-          DEFAULT: "#FACC15",
+          DEFAULT: "#735c00",
+          soft: "#ffe088",
         },
         danger: {
-          DEFAULT: "#EF4444",
+          DEFAULT: "#ba1a1a",
+          container: "#ffdad6",
         },
         info: {
-          DEFAULT: "#3B82F6",
+          DEFAULT: "#5f5e5f",
         },
         surface: {
-          bg: "#F8FAFC",
+          bg: "#fbf9f4",
           card: "#FFFFFF",
+          dim: "#dbdad5",
+          bright: "#fbf9f4",
+          containerLowest: "#ffffff",
+          containerLow: "#f5f3ee",
+          container: "#f0eee9",
+          containerHigh: "#eae8e3",
+          containerHighest: "#e4e2dd",
+          variant: "#e4e2dd",
+          tint: "#5f5e5f",
         },
         text: {
-          primary: "#1E293B",
-          secondary: "#94A3B8",
+          primary: "#1b1c19",
+          secondary: "#46474a",
+          variant: "#46474a",
+        },
+        outline: {
+          DEFAULT: "#76777b",
+          variant: "#c7c6ca",
         },
         mesa: {
           reservada: "#60A5FA",
           ocupada: "#F59E0B",
           disponible: "#BBF7D0",
-          bloqueada: "rgba(239, 68, 68, 0.3)",
-          inactiva: "#E2E8F0",
+          bloqueada: "rgba(186, 26, 26, 0.08)",
+          inactiva: "#e4e2dd",
         },
         kds: {
-          ok: "#22C55E",
-          warn: "#FACC15",
-          over: "#EF4444",
-          bg: "#111827",
+          ok: "#735c00",
+          warn: "#e9c349",
+          over: "#ba1a1a",
+          bg: "#1b1b1c",
         },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Playfair Display", "serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       borderRadius: {
+        sm: "0.25rem",
+        DEFAULT: "0.5rem",
         component: "8px",
+        md: "0.75rem",
         card: "12px",
+        lg: "1rem",
+        xl: "1.5rem",
         badge: "9999px",
       },
       boxShadow: {
-        card: "0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)",
-        modal: "0 10px 40px rgba(0,0,0,0.25)",
+        card: "0 1px 2px rgba(27,28,25,0.06), 0 1px 8px rgba(27,28,25,0.04)",
+        modal: "0 12px 24px rgba(27,28,25,0.12), 0 4px 8px rgba(27,28,25,0.08)",
       },
       keyframes: {
         "fade-scale": {

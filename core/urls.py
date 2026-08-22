@@ -8,6 +8,7 @@ from .views import (
     client_login_view,
     dashboard,
     login_view,
+    user_management,
     waiter_dashboard,
     warehouse_dashboard,
 )
@@ -19,6 +20,7 @@ urlpatterns = [
     path("logout/", CustomLogoutView.as_view(), name="logout"),
     path("dashboard/", dashboard, name="dashboard"),
     path("dashboard/admin/", admin_dashboard, name="admin_dashboard"),
+    path("dashboard/admin/usuarios/", user_management, name="user_management"),
     path("dashboard/cajero/", cashier_dashboard, name="cashier_dashboard"),
     path("dashboard/mesero/", waiter_dashboard, name="waiter_dashboard"),
     path("dashboard/chef/", chef_dashboard, name="chef_dashboard"),

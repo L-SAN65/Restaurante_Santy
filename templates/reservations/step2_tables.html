@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Reservar · Paso 2 · Santy{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-[#fbf9f4] flex flex-col">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-outline-variant/30">
+    <div class="mx-auto max-w-[1440px] px-4 lg:px-10 h-16 flex items-center justify-between">
+      <a href="{% url 'reservations:menu' %}" class="font-display text-xl font-semibold text-text-primary">Luxe Dining <span class="font-sans text-xs tracking-[0.2em] text-text-secondary">SANTY</span></a>
+      <div class="flex items-center gap-3 text-xs">
+        <span class="hidden sm:inline text-text-secondary">{{ date }} · {{ time }} · {{ guests }} pax</span>
+        <a href="{% url 'reservations:portal' %}" class="underline">Cambiar fecha</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 lg:px-10">
+    <div class="mx-auto max-w-5xl">
+      <div class="mb-6 flex items-center gap-2 text-xs">
+        <a href="{% url 'reservations:portal' %}" class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white">✓</a>
+        <span class="text-emerald-700 font-medium">Fecha</span>
+        <span class="h-px flex-1 bg-emerald-200"></span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold">2</span>
+        <span class="font-semibold text-text-primary">Elige mesa</span>
+        <span class="h-px flex-1 bg-outline-variant/30"></span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container border border-outline-variant/30 text-text-secondary">3</span>
+        <span class="text-text-secondary">Confirmar</span>
+      </div>
+
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-component border px-4 py-3 text-sm {% if message.tags == 'error' %}bg-danger/10 border-danger/20 text-danger{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="card p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 class="font-display text-2xl font-semibold text-text-primary">Selecciona tu mesa</h1>
+            <p class="mt-1 text-sm text-text-secondary">{{ date }} · {{ time }} → {{ end_at|date:"H:i" }} (bloque 2 h) · {{ guests }} comensal(es) · UTC-5</p>
+          </div>
+          <div class="flex gap-2 text-[11px]">
+            <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Disponible</span>
+            <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-zinc-300"></span> Ocupada/bloqueada</span>
+          </div>
+        </div>
+
+        <form method="post" class="mt-6" id="table-form">
+          {% csrf_token %}
+          {% if tables %}
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {% for table in tables %}
+            <label class="group relative flex cursor-pointer flex-col rounded-component border p-4 transition {% if table.is_reserved or table.is_blocked %}bg-zinc-100 border-zinc-200 opacity-60 cursor-not-allowed{% else %}bg-white border-outline-variant/30 hover:border-primary/40 hover:shadow-sm{% endif %}">
+              <input type="checkbox" name="tables" value="{{ table.pk }}" class="peer sr-only" {% if table.is_reserved or table.is_blocked %}disabled{% endif %}>
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-text-primary">Mesa {{ table.number }}</span>
+                <span class="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary-deep">{{ table.capacity }} pax</span>
+              </div>
+              <div class="mt-2 text-xs {% if table.is_reserved %}text-danger{% elif table.is_blocked %}text-zinc-500{% else %}text-emerald-700{% endif %}">
+                {% if table.is_reserved %}Reservada en este bloque{% elif table.is_blocked %}Bloqueada 2 min (otra reserva en curso){% else %}Disponible{% endif %}
+              </div>
+              <div class="mt-3 hidden peer-checked:block text-xs font-medium text-primary">✓ Seleccionada</div>
+              <div class="pointer-events-none absolute inset-0 rounded-component border-2 border-primary opacity-0 peer-checked:opacity-100"></div>
+            </label>
+            {% endfor %}
+          </div>
+          <p class="mt-3 text-xs text-text-secondary" id="capacity-hint">Selecciona mesas cuya capacidad total cubra {{ guests }} pax. Puedes combinar varias (p. ej. 4+6 para 8, etc. — sistema valida grupos).</p>
+          {% else %}
+          <p class="text-sm text-text-secondary">No hay mesas configuradas.</p>
+          {% endif %}
+
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/20 pt-5">
+            <a href="{% url 'reservations:portal' %}" class="btn-secondary">← Volver</a>
+            <button type="submit" class="btn-primary !px-8">Continuar a confirmar →</button>
+          </div>
+        </form>
+      </div>
+
+      <p class="mt-4 text-center text-xs text-text-secondary">Paso 2 de 3 · El bloqueo de 2 min evita reservas simultáneas (RF-28).</p>
+    </div>
+  </main>
+</div>
+<script>
+  // hint de capacidad en vivo
+  const form = document.getElementById('table-form');
+  const hint = document.getElementById('capacity-hint');
+  if (form && hint) {
+    form.addEventListener('change', () => {
+      const checked = [...form.querySelectorAll('input[name="tables"]:checked')];
+      // capacidad está en el texto "X pax" del badge
+      let total = 0;
+      checked.forEach(cb => {
+        const label = cb.closest('label');
+        const badge = label.querySelector('.text-primary-deep');
+        if (badge) total += parseInt(badge.textContent) || 0;
+      });
+      const needed = {{ guests }};
+      hint.textContent = total ? `Capacidad seleccionada: ${total} pax (necesitas ${needed})${total < needed ? ' — insuficiente' : ' ✓ suficiente'}` : `Selecciona mesas cuya capacidad total cubra ${needed} pax.`;
+      hint.className = total >= needed ? 'mt-3 text-xs font-medium text-emerald-700' : 'mt-3 text-xs text-text-secondary';
+    });
+  }
+</script>
+{% endblock %}

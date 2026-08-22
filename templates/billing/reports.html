@@ -27,32 +27,32 @@
 
 <div class="grid gap-4 sm:grid-cols-3">
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Ventas brutas</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Ventas brutas</p>
     <p class="mt-2 text-2xl font-semibold text-text-primary">{{ gross_sales|usd }}</p>
   </div>
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Facturas emitidas</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Facturas emitidas</p>
     <p class="mt-2 text-2xl font-semibold text-text-primary">{{ invoice_count }}</p>
   </div>
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Mermas</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Mermas</p>
     <p class="mt-2 text-2xl font-semibold text-danger">{{ shrinkage_total }}</p>
   </div>
 </div>
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
   <div class="card overflow-x-auto">
-    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Ventas</h2>
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Ventas</h2>
     <table class="w-full text-left text-sm">
       <thead>
-        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+        <tr class="border-b border-outline-variant/30 text-xs uppercase tracking-[0.05em] text-text-secondary">
           <th class="px-4 py-2">Factura</th><th class="p-2">Fecha</th><th class="p-2">Cliente</th>
           <th class="p-2">Subtotal</th><th class="p-2">IVA</th><th class="p-2">Total</th>
         </tr>
       </thead>
       <tbody>
         {% for invoice in invoices %}
-        <tr class="border-b border-slate-100">
+        <tr class="border-b border-outline-variant/20">
           <td class="px-4 py-2 font-medium">#{{ invoice.pk }}</td>
           <td class="p-2">{{ invoice.issued_at|date:"d/m/Y H:i" }}</td>
           <td class="p-2">{{ invoice.client_name|default:"—" }}</td>
@@ -68,16 +68,16 @@
   </div>
 
   <div class="card overflow-x-auto">
-    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Mermas</h2>
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Mermas</h2>
     <table class="w-full text-left text-sm">
       <thead>
-        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+        <tr class="border-b border-outline-variant/30 text-xs uppercase tracking-[0.05em] text-text-secondary">
           <th class="px-4 py-2">Platillo</th><th class="p-2">Motivo</th><th class="p-2">Fecha</th>
         </tr>
       </thead>
       <tbody>
         {% for s in shrinkages %}
-        <tr class="border-b border-slate-100">
+        <tr class="border-b border-outline-variant/20">
           <td class="px-4 py-2 font-medium">{{ s.order_item.name }}</td>
           <td class="p-2">{{ s.reason }}</td>
           <td class="p-2">{{ s.registered_at|date:"d/m/Y H:i" }}</td>

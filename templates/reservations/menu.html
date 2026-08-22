@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Menú · Santy{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#fbf9f4] flex flex-col">
+  <!-- Header público (sin auth) -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-outline-variant/30">
+    <div class="mx-auto max-w-[1440px] px-4 lg:px-10 h-20 flex items-center justify-between">
+      <a href="{% url 'reservations:portal' %}" class="font-display text-2xl font-semibold tracking-tight text-text-primary">Luxe Dining <span class="font-sans text-xs font-normal tracking-[0.2em] text-text-secondary ml-1">SANTY</span></a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="{% url 'reservations:menu' %}" class="font-semibold border-b-2 border-primary pb-1 text-text-primary">Menú</a>
+        <a href="{% url 'reservations:portal' %}" class="text-text-secondary hover:text-primary transition-colors">Reservas</a>
+        <a href="{% url 'reservations:client_login' %}" class="text-text-secondary hover:text-primary transition-colors">Mis reservas</a>
+      </nav>
+      <a href="{% url 'reservations:portal' %}" class="btn-primary hidden sm:inline-flex !py-2.5 !px-6 text-sm">Reservar mesa</a>
+    </div>
+  </header>
+
+  <!-- Hero + acceso cliente (primer paso del flujo) -->
+  <section class="bg-[#f5f3ee] border-b border-outline-variant/20 py-10 md:py-14">
+    <div class="mx-auto max-w-[1440px] px-4 lg:px-10">
+      <div class="grid gap-8 lg:grid-cols-2 items-center">
+        <div class="text-center lg:text-left">
+          <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-text-secondary">Haute Management · UTC-5</p>
+          <h1 class="font-display text-4xl md:text-[52px] font-semibold leading-none text-text-primary">Nuestro Menú</h1>
+          <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base lg:mx-0">Selección curada del Chef — ingredientes de temporada, precios en USD con IVA 15% incluido en factura. Consulta disponibilidad del día.</p>
+          <div class="mt-6 flex flex-wrap justify-center lg:justify-start gap-3 text-xs">
+            <span class="badge bg-white border border-outline-variant/30">Zona horaria UTC-5 sin DST</span>
+            <span class="badge bg-white border border-outline-variant/30">Moneda USD</span>
+            <span class="badge bg-white border border-outline-variant/30">Bloques de 2 h</span>
+          </div>
+        </div>
+        <!-- Card acceso cliente: primer flujo pedido: menú → login/registro -->
+        <div class="card bg-white p-6 md:p-7 shadow-sm border border-outline-variant/30">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-secondary">Módulo Cliente</p>
+          <h2 class="mt-1 font-display text-xl font-semibold text-text-primary">¿Quieres reservar?</h2>
+          <p class="mt-1 text-sm text-text-secondary">Accede o crea tu cuenta para reservar mesa con 12 h de anticipación.</p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <a href="{% url 'reservations:client_login' %}?next={% url 'reservations:portal' %}" class="btn-primary text-center !py-3">Iniciar sesión</a>
+            <a href="{% url 'reservations:client_register' %}?next={% url 'reservations:portal' %}" class="btn-secondary text-center !py-3 border border-outline-variant/30 bg-surface-containerLow hover:bg-surface-container">Crear cuenta</a>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs text-text-secondary">
+            <a href="{% url 'reservations:portal' %}" class="underline decoration-outline-variant underline-offset-4 hover:decoration-primary">Ir directo a reservas</a>
+            <span>·</span>
+            <a href="{% url 'reservations:client_login' %}" class="underline">Mis reservas</a>
+            <span>·</span>
+            <a href="{% url 'core:login' %}" class="font-medium text-text-primary underline">Acceso personal</a>
+          </div>
+          <p class="mt-3 text-[11px] leading-relaxed text-text-secondary">Flujo Luxe: <span class="font-medium text-text-primary">Menú</span> → <span class="font-medium">Login / Registro cliente</span> → <span class="font-medium">Reserva en 3 pasos</span>. Formularios separados de personal (RF-01/34).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenido -->
+  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-10 lg:px-10">
+    {% if dishes %}
+    <div class="mb-8 flex items-center justify-between">
+      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">{{ dishes|length }} platillo{{ dishes|length|pluralize }} disponible{{ dishes|length|pluralize }}</p>
+      <a href="{% url 'reservations:portal' %}" class="text-xs font-medium text-primary underline decoration-outline-variant underline-offset-4 hover:decoration-primary">¿Quieres reservar? Hazlo aquí</a>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for dish in dishes %}
+      <article class="card group flex flex-col overflow-hidden p-0 hover:shadow-lg transition-shadow">
+        <div class="h-1 w-full bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="p-5 flex flex-1 flex-col">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-display text-lg font-semibold leading-tight text-text-primary">{{ dish.name }}</h3>
+            <span class="shrink-0 rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary-deep">{{ dish.price|usd }}</span>
+          </div>
+          <div class="mt-3 flex items-center gap-2">
+            {% if dish.availability == 'ACTIVE' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-emerald-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Disponible
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-zinc-500">
+                <span class="h-1.5 w-1.5 rounded-full bg-zinc-400"></span> Deshabilitado por stock
+              </span>
+            {% endif %}
+            <span class="text-[11px] text-text-secondary">· IVA 15% en factura</span>
+          </div>
+          <p class="mt-3 text-sm leading-relaxed text-text-secondary">Platillo de la carta Santy elaborado bajo ficha técnica y control de inventario.</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="mt-10 card bg-surface-containerLow p-6 text-center">
+      <p class="text-sm font-medium text-text-primary">¿Listo para visitarnos?</p>
+      <p class="mt-1 text-sm text-text-secondary">Reserva tu mesa con mínimo 12 h de anticipación · Bloques de 2 horas · Horario 10:00–00:00</p>
+      <a href="{% url 'reservations:portal' %}" class="btn-primary mt-4 inline-flex">Reservar ahora</a>
+    </div>
+
+    {% else %}
+    <div class="card py-16 text-center">
+      <p class="font-display text-xl font-semibold text-text-primary">Carta en actualización</p>
+      <p class="mx-auto mt-2 max-w-md text-sm text-text-secondary">Aún no hay platillos activos. El administrador los gestiona desde <span class="font-mono text-xs">/admin/kitchen/dish/</span>. Vuelve pronto.</p>
+      <a href="{% url 'reservations:portal' %}" class="btn-secondary mt-6">Volver a reservas</a>
+    </div>
+    {% endif %}
+  </main>
+
+  <footer class="border-t border-outline-variant/20 bg-white px-4 py-6 text-center text-xs text-text-secondary lg:px-10">
+    © {% now "Y" %} Santy · Luxe Dining · Haute Management · Precios en USD · <a href="{% url 'reservations:portal' %}" class="underline">Reservas</a> · <a href="{% url 'reservations:menu' %}" class="underline">Menú</a>
+  </footer>
+</div>
+{% endblock %}

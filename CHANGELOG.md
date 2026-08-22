@@ -4,6 +4,54 @@ Registro de todos los cambios realizados en el proyecto, organizado por sesión.
 
 ---
 
+## Sesión 2026-08-22 — Módulo Cliente completo + separación de logins (personal vs cliente)
+
+> **Objetivo:** implementar todas las vistas primero el flujo cliente (menú → login/registro → reservas en 3 pasos) y después el login del personal con formularios separados, cerrando las vistas faltantes del portal y dejando el sistema navegable de punta a punta (RF-27..33, RF-01/34).
+
+| Archivo | Descripción |
+|---|---|
+| `santy/urls.py` | `/` ahora redirige a `reservations:menu` (landing pública sin login, primer paso del flujo cliente). Antes apuntaba a `core:login`. |
+| `core/views.py` | `login_view` convertido en **staff-only** (`core/staff_login.html`): rechaza `Role.CLIENT` con mensaje dirigido a `/reservas/login/`; conserva suspensión 15 min / bloqueo 5 fallos (RF-02/03). `client_login_view` y `client_register_view` ya separados en `reservations`. |
+| `templates/core/staff_login.html` | **Nuevo** — formulario exclusivo del personal (ADMIN, CASHIER, WAITER, CHEF, WAREHOUSE), estilo `inverse-surface`, banner RF-02/03, link a portal clientes y credenciales de prueba. |
+| `templates/core/login.html` | Conservado como legacy (ya no referenciado por la vista). |
+| `templates/reservations/login.html` | Actualizado: CTA a `reservations:client_register` con `?next=` preservado, links a `menu` y a `core:login` (Soy personal), hidden `next` dentro del form. |
+| `templates/reservations/register.html` | **Nuevo** — registro cliente (nombre, cédula, teléfono, email, contraseña) con validaciones 8 chars, `?next=` y alta como `Role.CLIENT` + login automático. Diseño Luxe. |
+| `templates/reservations/menu.html` | Hero reestructurado en 2 columnas: menú + card **Módulo Cliente** con botones "Iniciar sesión / Crear cuenta → portal" y flujo documentado (Menú → Login/Registro → 3 pasos). Links a personal. |
+| `templates/reservations/step1_details.html` | **Nuevo** — paso 1 Luxe: fecha/hora/comensales (select 2/4/6/12), progress 1/3, mensajes, validación 12 h y 10:00–00:00. |
+| `templates/reservations/step2_tables.html` | **Nuevo** — paso 2: grilla visual de mesas con estado (disponible/reservada/bloqueada 2 min), selección múltiple, hint de capacidad en vivo, progress 2/3. |
+| `templates/reservations/step3_confirm.html` | **Nuevo** — paso 3: resumen fecha/mesas, prefill `full_name/email`, notas, aviso tolerancia 15 min / cancelación 4 h, confirmación crea `Reservation` + `TableBlock` 2 min (RF-28). |
+| `templates/reservations/success.html` | **Nuevo** — pantalla de éxito con ref. `LX-XXXX`, detalle fecha/mesas/email/estado y CTAs a mis reservas / menú. |
+| `reservations/views.py` | `reservation_portal` ahora soporta **legacy 1-paso** (POST con `tables` → crea reserva directo para compatibilidad con `reservations/tests.py`) además del flujo 3 pasos por sesión; acepta `guests` 1..12 legacy. |
+| `docs/ARQUITECTURA.md` | §6 actualizado: tabla completa de pantallas Stitch → templates con estado ✅; §8 pendientes simplificado (queda Realtime + tests BDD). |
+
+**Flujo implementado:**
+1. `GET /` → `reservations:menu` (público, sin auth) con CTAs **Iniciar sesión** (`/reservas/login/?next=/reservas/`) y **Crear cuenta** (`/reservas/registro/?next=/reservas/`).
+2. Cliente se registra/loguea en formularios **exclusivos de cliente** (`Role.CLIENT`); staff usa `/login/` (`core:staff_login.html`, rechaza CLIENT).
+3. `GET /reservas/` (portal paso 1) → paso 2 → paso 3 → `LX-XXXX` → `/reservas/mis-reservas/` (cancelación ≥4 h, RF-33).
+4. Módulo cliente aislado hasta ahí; resto de vistas (KDS, facturación, inventario, etc.) ya existentes y enlazadas por sidebar/roles.
+
+**Evidencia:** `python manage.py check` → 0 issues.
+
+---
+
+## Sesión 2026-08-22 — Panel Administrador: usuarios/roles, inventario y reportes visibles
+
+> **Incidencia:** el Administrador no veía la gestión de inventario ni la gestión de roles (sidebar solo mostraba Panel/Reportes/Bitácora/PIN).
+
+| Archivo | Descripción |
+|---|---|
+| `inventory/views.py` | `_guard_warehouse` ampliado a `Role.WAREHOUSE` **y** `Role.ADMIN` — el Administrador ve y opera inventario completo (RF-13/14/23/24) manteniendo la aprobación de correcciones solo ADMIN (`correction_review`). |
+| `core/views.py` | Nuevo `user_management` (solo ADMIN): lista usuarios, cambio de rol, desbloqueo (reset fallos) y alta de usuarios de personal; todo auditado en `AuditLog` (RF-01/34). Nuevo `_guard_admin` reutilizable. |
+| `core/urls.py` | Nueva ruta `dashboard/admin/usuarios/` → `core:user_management`. |
+| `templates/partials/sidebar.html` | ADMIN ahora muestra **Usuarios y roles**, **Inventario** y **Reportes** además de Panel/Bitácora/PIN. |
+| `templates/core/admin_dashboard.html` | Tres cards destacadas: **Gestión de roles**, **Gestión de inventario**, **Reportes y análisis** + accesos rápidos a recepciones/correcciones/bitácora. |
+| `templates/core/user_management.html` | **Nuevo** — tabla de usuarios con selector de rol + Guardar, badge de estado (Activa/Suspendida/Bloqueada), botón Desbloquear y formulario de alta (email/rol/contraseña). Enlaces a inventario/reportes/bitácora. |
+
+**Verificación:** `python manage.py check` → 0 issues; login `admin@santy.com/admin` → Panel → Usuarios/Inventario/Reportes accesibles.
+
+---
+
+
 > **Fecha:** 2026-08-19
 > **Objetivo:** corregir la suite de tests (`python manage.py test`) hasta dejarla completamente verde (28/28) y arreglar bugs detectados por los tests.
 

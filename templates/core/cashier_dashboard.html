@@ -4,41 +4,41 @@
 {% block content %}
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
   <div>
-    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Panel de Cajero</h1>
-    <p class="text-sm text-text-secondary">Cobros, caja y fidelización · UTC-5</p>
+    <h1 class="font-display text-2xl font-semibold tracking-tight text-text-primary">Panel de Cajero</h1>
+    <p class="text-sm text-text-secondary">Cobros, caja y fidelización · UTC-5 — Control y calma</p>
   </div>
   <div class="flex gap-2">
     <a href="{% url 'billing:invoice_list' %}" class="btn-primary">Facturación</a>
-    <a href="{% url 'billing:cash_register_open' %}" class="btn-secondary">Caja</a>
+    <a href="{% url 'billing:cash_register_open' %}" class="btn-ghost">Caja</a>
   </div>
 </div>
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Ventas hoy</p>
-    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ today_total|usd }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Ventas hoy</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ today_total|usd }}</p>
   </div>
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Facturas hoy</p>
-    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ today_invoices }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Facturas hoy</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ today_invoices }}</p>
   </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Caja</p>
+  <div class="card p-5 {% if active_register %}bg-primary text-white border-primary{% else %}bg-danger-container/20 border-danger/20{% endif %}">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] {% if active_register %}text-white/70{% else %}text-danger{% endif %}">Caja</p>
     {% if active_register %}
-    <p class="mt-2 text-xl font-semibold text-primary">Abierta</p>
+    <p class="mt-2 font-display text-xl font-semibold text-white">Abierta</p>
     {% else %}
-    <p class="mt-2 text-xl font-semibold text-danger">Cerrada</p>
+    <p class="mt-2 font-display text-xl font-semibold text-danger">Cerrada</p>
     {% endif %}
   </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Puntos canjeados hoy</p>
-    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ redeemed_points }}</p>
+  <div class="card p-5 bg-secondary-container/50 border-secondary-container">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-[#574500]">Puntos canjeados hoy</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-[#241a00]">{{ redeemed_points }}</p>
   </div>
 </div>
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
   <div class="card p-5">
-    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Próximo paso</h2>
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Próximo paso</h2>
     {% if active_register %}
     <p class="mb-3 text-sm text-text-secondary">La caja está abierta. Cierre el turno con el cierre ciego cuando corresponda.</p>
     <a href="{% url 'billing:cash_register_close' %}" class="btn-secondary w-full">Cerrar caja (ciego)</a>
@@ -48,7 +48,7 @@
     {% endif %}
   </div>
   <div class="card p-5">
-    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Fidelización</h2>
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Fidelización</h2>
     <p class="mb-3 text-sm text-text-secondary">Consulte saldo de puntos por cédula y aplique canjes (10 pts = $1.00).</p>
     <a href="{% url 'loyalty:wallet' %}" class="btn-secondary w-full">Ir a puntos</a>
   </div>

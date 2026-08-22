@@ -10,7 +10,7 @@
 <div class="grid gap-4 lg:grid-cols-2">
   <form method="post" class="card space-y-4 p-5">
     {% csrf_token %}
-    <h2 class="text-sm font-semibold uppercase tracking-wide text-text-secondary">Nueva recepción</h2>
+    <h2 class="text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Nueva recepción</h2>
     <div>
       <label class="label" for="ingredient">Insumo</label>
       <select id="ingredient" name="ingredient" class="input" required>
@@ -41,16 +41,16 @@
   </form>
 
   <div class="card overflow-x-auto">
-    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-text-secondary">Recepciones</h2>
+    <h2 class="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Recepciones</h2>
     <table class="w-full text-left text-sm">
       <thead>
-        <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
+        <tr class="border-b border-outline-variant/30 text-xs uppercase tracking-[0.05em] text-text-secondary">
           <th class="px-4 py-2">Insumo</th><th class="p-2">Cant.</th><th class="p-2">Costo</th><th class="p-2">Lote</th><th class="p-2">Estado</th><th class="p-2"></th>
         </tr>
       </thead>
       <tbody>
         {% for receipt in receipts %}
-        <tr class="border-b border-slate-100">
+        <tr class="border-b border-outline-variant/20">
           <td class="px-4 py-2 font-medium">{{ receipt.ingredient.name }}</td>
           <td class="p-2">{{ receipt.quantity }} {{ receipt.ingredient.unit }}</td>
           <td class="p-2">{{ receipt.unit_cost|usd }}</td>
@@ -59,7 +59,7 @@
             {% if receipt.confirmed %}
             <span class="badge bg-primary-soft text-primary-deep">Confirmada</span>
             {% else %}
-            <span class="badge bg-slate-100 text-slate-700">Pendiente</span>
+            <span class="badge bg-surface-containerHigh text-text-secondary">Pendiente</span>
             {% endif %}
           </td>
           <td class="p-2">

@@ -8,7 +8,7 @@
 </div>
 
 <div class="card mb-6 p-5">
-  <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Buscar por cédula</h2>
+  <h2 class="mb-3 text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Buscar por cédula</h2>
   <form method="get" class="flex flex-col gap-3 sm:flex-row">
     <input type="text" name="cedula" value="{{ request.GET.cedula }}" class="input" placeholder="Cédula del cliente" aria-label="Cédula del cliente">
     <button type="submit" class="btn-primary">Buscar</button>
@@ -30,7 +30,7 @@
       </p>
     </div>
     <div class="flex gap-2">
-      <span class="badge bg-blue-100 text-blue-800">{{ reservation.tables.count }} mesa(s)</span>
+      <span class="badge bg-secondary-container text-[#574500]">{{ reservation.tables.count }} mesa(s)</span>
     </div>
   </div>
 

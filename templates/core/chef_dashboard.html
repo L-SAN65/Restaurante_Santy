@@ -4,8 +4,8 @@
 {% block content %}
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
   <div>
-    <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Panel de Cocina (KDS)</h1>
-    <p class="text-sm text-text-secondary">Semáforo de tiempos: &lt;10 min verde · 10-20 min amarillo · &gt;20 min rojo</p>
+    <h1 class="font-display text-2xl font-semibold tracking-tight text-text-primary">Panel de Cocina (KDS)</h1>
+    <p class="text-sm text-text-secondary">Semáforo Haute: &lt;10 min · 10–20 min · &gt;20 min — Precisión y prestigio</p>
   </div>
   <div class="flex gap-2">
     <a href="{% url 'kitchen:kds' %}" class="btn-primary">Pantalla KDS</a>
@@ -14,48 +14,48 @@
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">En preparación</p>
-    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ preparing_count }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">En preparación</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ preparing_count }}</p>
+  </div>
+  <div class="card p-5 bg-surface-containerLow">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">En espera</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ waiting_count }}</p>
+  </div>
+  <div class="card p-5 bg-danger-container/20 border-danger/20">
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-danger">Críticas (&gt;20 min)</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-danger">{{ overdue_count }}</p>
   </div>
   <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">En espera</p>
-    <p class="mt-2 text-2xl font-semibold text-blue-600">{{ waiting_count }}</p>
-  </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Críticas (&gt;20 min)</p>
-    <p class="mt-2 text-2xl font-semibold text-danger">{{ overdue_count }}</p>
-  </div>
-  <div class="card p-5">
-    <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Mermas hoy</p>
-    <p class="mt-2 text-2xl font-semibold text-text-primary">{{ shrinkage_count }}</p>
+    <p class="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Mermas hoy</p>
+    <p class="mt-2 font-display text-2xl font-semibold text-text-primary">{{ shrinkage_count }}</p>
   </div>
 </div>
 
-<div class="mt-6 card p-5">
-  <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Últimas comandas</h2>
+<div class="mt-6 card p-5 overflow-x-auto">
+  <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Últimas comandas</h2>
   <table class="w-full text-left text-sm">
     <thead>
-      <tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-text-secondary">
-        <th class="py-2 pr-4">Comanda</th>
-        <th class="p-2">Mesa</th>
-        <th class="p-2">Estado</th>
-        <th class="p-2">Semáforo</th>
+      <tr class="border-b border-outline-variant/30 text-xs uppercase tracking-[0.05em] text-text-secondary">
+        <th class="py-2 pr-4 font-semibold">Comanda</th>
+        <th class="p-2 font-semibold">Mesa</th>
+        <th class="p-2 font-semibold">Estado</th>
+        <th class="p-2 font-semibold">Semáforo</th>
       </tr>
     </thead>
     <tbody>
       {% for order in recent_orders %}
-      <tr class="border-b border-slate-100">
-        <td class="py-2 pr-4 font-medium">#{{ order.pk }}</td>
+      <tr class="border-b border-outline-variant/20 hover:bg-surface-containerLow/50 transition-colors">
+        <td class="py-2 pr-4 font-mono font-medium">#{{ order.pk }}</td>
         <td class="p-2">{{ order.table.number }}</td>
-        <td class="p-2">{{ order.get_status_display }}</td>
+        <td class="p-2"><span class="badge bg-surface-containerHigh text-text-primary">{{ order.get_status_display }}</span></td>
         <td class="p-2">
-          <span class="badge border border-2 {{ order.traffic_light|traffic_light_class }}">
+          <span class="badge border {{ order.traffic_light|traffic_light_class }}">
             {{ order.elapsed_minutes }} min
           </span>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" class="py-4 text-center text-text-secondary">Sin comandas recientes.</td></tr>
+      <tr><td colspan="4" class="py-8 text-center text-text-secondary">Sin comandas recientes.</td></tr>
       {% endfor %}
     </tbody>
   </table>

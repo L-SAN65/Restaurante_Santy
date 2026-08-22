@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Reservas · Santy{% endblock %}
 {% block body %}
-<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary to-primary-deep p-4">
+<div class="flex min-h-screen items-center justify-center bg-[#fbf9f4] p-4">
   <div class="w-full max-w-2xl space-y-6">
     <div class="text-center">
-      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-2xl font-bold text-primary">S</span>
-      <h1 class="mt-3 text-3xl font-semibold tracking-tight text-white">Reservar en Santy</h1>
-      <p class="text-sm text-white/80">Bloques de 2 horas · Horario 10:00 – 00:00 · UTC-5</p>
+      <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white">S</span>
+      <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-text-primary">Reservar en Santy</h1>
+      <p class="text-sm text-text-secondary">Bloques de 2 horas · Horario 10:00 – 00:00 · UTC-5 — <span class="font-medium text-primary">Haute Management</span></p>
     </div>
 
     {% if messages %}
     <div class="space-y-2" role="alert">
       {% for message in messages %}
-      <div class="rounded-component bg-white/15 px-4 py-3 text-sm font-medium text-white border border-white/20">
+      <div class="rounded-component bg-danger-container/60 border border-danger/20 px-4 py-3 text-sm font-medium text-danger">
         {{ message }}
       </div>
       {% endfor %}
     </div>
     {% endif %}
 
-    <form method="post" class="rounded-card bg-white p-6 shadow-modal space-y-4">
+    <form method="post" class="card p-6 space-y-4">
       {% csrf_token %}
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
@@ -64,19 +64,19 @@
     </form>
 
     {% if dishes %}
-    <div class="rounded-card bg-white p-6 shadow-modal">
-      <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">Nuestro menú</h2>
+    <div class="card p-6">
+      <h2 class="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">Nuestro menú — selección curada</h2>
       <div class="grid gap-2 sm:grid-cols-2">
         {% for dish in dishes %}
-        <div class="flex justify-between rounded-component border px-3 py-2 text-sm">
-          <span>{{ dish.name }}</span>
+        <div class="flex justify-between rounded-component border border-outline-variant/30 bg-surface-containerLow px-3 py-2 text-sm">
+          <span class="text-text-primary">{{ dish.name }}</span>
         </div>
         {% endfor %}
       </div>
     </div>
     {% else %}
-    <div class="text-center text-white/80">
-      <a href="{% url 'reservations:client_login' %}" class="font-medium text-white underline">¿Ya tiene cuenta de cliente? Ingrese aquí</a>
+    <div class="text-center text-text-secondary">
+      <a href="{% url 'reservations:client_login' %}" class="font-medium text-primary underline decoration-outline-variant underline-offset-4 hover:decoration-primary">¿Ya tiene cuenta de cliente? Ingrese aquí</a>
     </div>
     {% endif %}
   </div>
