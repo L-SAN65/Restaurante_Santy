@@ -5,7 +5,8 @@ from .models import Reservation, Table, TableBlock
 
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
-    list_display = ("number", "capacity", "is_contiguous_group", "disabled")
+    list_display = ("number", "capacity", "room", "x", "y", "is_contiguous_group", "disabled")
+    list_filter = ("room", "capacity", "disabled")
 
 
 @admin.register(Reservation)

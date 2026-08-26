@@ -131,12 +131,15 @@ DECIMAL_SEPARATOR = "."
 THOUSAND_SEPARATOR = ","
 
 # ---------------------------------------------------------------------------
-# Archivos estáticos
+# Archivos estáticos y media (imágenes de platillos)
 # ---------------------------------------------------------------------------
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Los tests no requieren manifest hasheado (evita depender de npm run build).
 if "test" in sys.argv:

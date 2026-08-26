@@ -139,6 +139,17 @@ class Dish(models.Model):
         default=ACTIVE,
     )
     active = models.BooleanField(default=True)
+    image = models.ImageField(
+        upload_to="dishes/",
+        blank=True,
+        null=True,
+        help_text="Imagen del platillo para el menú cliente (recomendado 800x600, JPG/PNG, máx 2MB).",
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Descripción corta para el menú cliente.",
+    )
 
     class Meta:
         verbose_name = "Platillo"

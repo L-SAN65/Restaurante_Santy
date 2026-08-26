@@ -5,7 +5,7 @@
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-2xl font-semibold tracking-tight text-text-primary">Plano de salas</h1>
-    <p class="text-sm text-text-secondary">Estado en vivo de las mesas · UTC-5</p>
+    <p class="text-sm text-text-secondary">Estado en vivo por sala — 3 salas: Sala VIP · Terraza · Piso 1 · UTC-5</p>
   </div>
   <a href="{% url 'reservations:checkin' %}" class="btn-primary">Check-in de reserva</a>
 </div>
@@ -17,31 +17,84 @@
   <span class="badge bg-danger-container text-danger">Bloqueada</span>
 </div>
 
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-  {% for row in tables %}
-  <div class="card p-4 card-hover">
-    <div class="mb-2 flex items-center justify-between">
-      <span class="font-display text-base font-semibold text-text-primary">Mesa {{ row.table.number }}</span>
-      <span class="badge {{ row.status|badge_class }}">{{ row.status|table_status_label }}</span>
-    </div>
-    <p class="text-xs text-text-secondary">Capacidad: {{ row.table.capacity }} pax</p>
-    {% if row.has_order %}
-    <p class="mt-1 text-xs font-medium text-text-primary">
-      Comanda #{{ row.active_order.pk }} · {{ row.active_order.get_status_display }}
-    </p>
-    {% endif %}
-    <div class="mt-3 flex flex-col gap-1.5">
-      {% if row.status == "OCCUPIED" and row.has_order %}
-      <a href="{% url 'kitchen:account_segmentation' row.active_order.pk %}" class="btn-ghost w-full text-xs">Segmentar cuenta</a>
-      {% elif row.status != "OCCUPIED" %}
-      <a href="{% url 'kitchen:order_create' row.table.pk %}" class="btn-primary w-full text-xs">Tomar comanda</a>
-      {% else %}
-      <a href="{% url 'kitchen:order_create' row.table.pk %}" class="btn-secondary w-full text-xs">Agregar ítems</a>
-      {% endif %}
-    </div>
-  </div>
-  {% empty %}
-  <p class="col-span-full text-center text-sm text-text-secondary">No hay mesas registradas.</p>
+<!-- Tabs salas -->
+<div class="mb-4 flex flex-wrap gap-2">
+  <button type="button" data-floor-filter="all" class="floor-tab active rounded-full border px-4 py-1.5 text-xs font-semibold bg-primary text-white border-primary">Todas</button>
+  {% for room in rooms %}
+  <button type="button" data-floor-filter="{{ room.code }}" class="floor-tab rounded-full border px-4 py-1.5 text-xs font-semibold bg-white text-text-secondary border-outline-variant/30">{{ room.label }} ({{ room.rows|length }})</button>
   {% endfor %}
 </div>
+
+{% for room in rooms %}
+<section data-floor-section="{{ room.code }}" class="floor-section mb-6 rounded-component border-2 overflow-hidden bg-white {% if room.code == 'VIP' %}border-amber-200{% elif room.code == 'TERRAZA' %}border-sky-200{% else %}border-zinc-200{% endif %}">
+  <div class="flex items-center justify-between px-5 py-3 {% if room.code == 'VIP' %}bg-amber-50{% elif room.code == 'TERRAZA' %}bg-sky-50{% else %}bg-zinc-50{% endif %} border-b border-outline-variant/20">
+    <h2 class="text-sm font-bold uppercase tracking-wide">{% if room.code == 'VIP' %}✦ Sala VIP{% elif room.code == 'TERRAZA' %}☀ Terraza{% else %}◧ Piso 1{% endif %} <span class="font-normal normal-case text-text-secondary">{{ room.rows|length }} mesa(s)</span></h2>
+    <span class="text-[11px] text-text-secondary">{% if room.code == 'VIP' %}Privado{% elif room.code == 'TERRAZA' %}Exterior{% else %}Salón{% endif %}</span>
+  </div>
+
+  <!-- Croquis visual con coordenadas -->
+  <div class="relative w-full bg-[radial-gradient(circle_at_1px_1px,#e5e7eb_1px,transparent_0)] bg-[length:20px_20px]" style="height: 230px;">
+    <div class="absolute inset-3 rounded-xl border border-dashed border-outline-variant/40 bg-white/60"></div>
+    {% for row in room.rows %}
+    <div class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center" style="left: {% if row.table.x %}{{ row.table.x }}%{% else %}{{ forloop.counter0|add:1 }}0%{% endif %}; top: {% if row.table.y %}{{ row.table.y }}%{% else %}50%{% endif %};">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border-2 text-xs font-bold shadow-sm
+        {% if row.status == 'AVAILABLE' %}bg-white border-emerald-300 text-emerald-800
+        {% elif row.status == 'RESERVED' %}bg-amber-100 border-amber-300 text-amber-900
+        {% elif row.status == 'OCCUPIED' %}bg-emerald-600 border-emerald-700 text-white
+        {% else %}bg-red-100 border-red-300 text-red-700{% endif %}
+        {% if row.table.shape == 'rect' %}rounded-lg{% endif %}">
+        {{ row.table.number }}
+      </div>
+      <span class="mt-1 rounded bg-white px-1 text-[10px] font-semibold border">{{ row.table.capacity }} pax</span>
+      <span class="text-[9px] {% if row.status == 'AVAILABLE' %}text-emerald-700{% elif row.status == 'RESERVED' %}text-amber-800{% elif row.status == 'OCCUPIED' %}text-emerald-800{% else %}text-red-700{% endif %}">{{ row.status|table_status_label }}</span>
+    </div>
+    {% empty %}
+    <p class="absolute inset-0 flex items-center justify-center text-sm text-text-secondary">Sin mesas en esta sala.</p>
+    {% endfor %}
+    <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] tracking-widest uppercase bg-white px-2 py-0.5 rounded-full border">Entrada</span>
+  </div>
+
+  <!-- Grid detalle -->
+  <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 bg-[#fcfbf9]">
+    {% for row in room.rows %}
+    <div class="card p-4 card-hover">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="font-display text-base font-semibold text-text-primary">Mesa {{ row.table.number }}</span>
+        <span class="badge {{ row.status|badge_class }}">{{ row.status|table_status_label }}</span>
+      </div>
+      <p class="text-xs text-text-secondary">Capacidad: {{ row.table.capacity }} pax · x:{{ row.table.x|floatformat:0 }} y:{{ row.table.y|floatformat:0 }}</p>
+      {% if row.has_order %}
+      <p class="mt-1 text-xs font-medium text-text-primary">
+        Comanda #{{ row.active_order.pk }} · {{ row.active_order.get_status_display }}
+      </p>
+      {% endif %}
+      <div class="mt-3 flex flex-col gap-1.5">
+        {% if row.status == "OCCUPIED" and row.has_order %}
+        <a href="{% url 'kitchen:account_segmentation' row.active_order.pk %}" class="btn-ghost w-full text-xs">Segmentar cuenta</a>
+        {% elif row.status != "OCCUPIED" %}
+        <a href="{% url 'kitchen:order_create' row.table.pk %}" class="btn-primary w-full text-xs">Tomar comanda</a>
+        {% else %}
+        <a href="{% url 'kitchen:order_create' row.table.pk %}" class="btn-secondary w-full text-xs">Agregar ítems</a>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <p class="col-span-full text-center text-sm text-text-secondary">No hay mesas en {{ room.label }}.</p>
+    {% endfor %}
+  </div>
+</section>
+{% empty %}
+<p class="text-center text-sm text-text-secondary">No hay mesas registradas.</p>
+{% endfor %}
+
+<script>
+  document.querySelectorAll('.floor-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.floor-tab').forEach(b => b.className = 'floor-tab rounded-full border px-4 py-1.5 text-xs font-semibold bg-white text-text-secondary border-outline-variant/30');
+      btn.className = 'floor-tab active rounded-full border px-4 py-1.5 text-xs font-semibold bg-primary text-white border-primary';
+      const f = btn.dataset.floorFilter;
+      document.querySelectorAll('.floor-section').forEach(s => s.style.display = (f === 'all' || s.dataset.floorSection === f) ? '' : 'none');
+    });
+  });
+</script>
 {% endblock %}

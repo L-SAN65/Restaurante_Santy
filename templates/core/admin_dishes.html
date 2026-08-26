@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load santy_extras %}
+{% block title %}Platos · Admin · Santy{% endblock %}
+{% block extra_head %}
+<style>
+  .img-preview{height:56px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e1d8;background:#fff}
+  .img-preview-create{height:64px;width:96px;object-fit:cover;border-radius:8px;border:1px dashed #c8c4b8;background:#fff}
+</style>
+{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight text-text-primary">Gestión de Platos</h1>
+    <p class="text-sm text-text-secondary">Menú y carta · Imagen para el menú cliente · Precio USD · Activo controla visibilidad · Solo Administrador</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'core:admin_dashboard' %}" class="btn-ghost">← Panel</a>
+    <a href="{% url 'core:admin_tables' %}" class="btn-ghost">Mesas →</a>
+    <a href="{% url 'core:admin_inventory' %}" class="btn-ghost">Inventario y recetas →</a>
+  </div>
+</div>
+
+{% if messages %}
+<div class="mb-4 space-y-2">
+  {% for message in messages %}
+  <div class="rounded-component border px-4 py-3 text-sm {% if message.tags == 'error' %}bg-danger-container/40 border-danger/20 text-danger{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-surface-containerLow border-outline-variant/30{% endif %}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Form crear -->
+<div class="card p-6 mb-6">
+  <h2 class="text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary mb-4">Nuevo platillo</h2>
+  <form method="post" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-12 items-end">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div class="md:col-span-3">
+      <label class="label">Nombre del platillo *</label>
+      <input type="text" name="name" class="input" placeholder="Ej. Ceviche Santy" required maxlength="180">
+    </div>
+    <div class="md:col-span-2">
+      <label class="label">Precio USD *</label>
+      <input type="number" name="price" class="input" placeholder="12.50" step="0.01" min="0" required>
+    </div>
+    <div class="md:col-span-3">
+      <label class="label">Descripción corta</label>
+      <input type="text" name="description" class="input" placeholder="Ej. Pesca del día, leche de tigre" maxlength="255">
+    </div>
+    <div class="md:col-span-2">
+      <label class="label">Imagen (JPG/PNG, máx 2MB)</label>
+      <input type="file" name="image" id="create-image" accept="image/*" class="input !py-1.5 text-xs">
+      <div class="mt-2 hidden" id="create-preview-wrap">
+        <img id="create-preview" class="img-preview-create" alt="preview">
+      </div>
+    </div>
+    <div class="md:col-span-2 flex items-center gap-3">
+      <label class="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" name="active" checked class="rounded border-outline-variant"> <span>Activo</span>
+      </label>
+      <button type="submit" class="btn-primary flex-1">Crear platillo</button>
+    </div>
+  </form>
+  <p class="mt-3 text-xs text-text-secondary">Recomendado 800×600 · Aparece en <span class="font-mono text-xs bg-white border px-1.5 py-0.5 rounded">/reservas/menu/</span> y en comandas del Mesero. Los inactivos quedan ocultos.</p>
+</div>
+
+<!-- Lista -->
+<div class="card overflow-hidden p-0">
+  <div class="px-6 py-4 border-b border-outline-variant/20 bg-surface-containerLow flex items-center justify-between">
+    <h2 class="text-sm font-semibold uppercase tracking-[0.05em] text-text-secondary">Carta actual · {{ dishes|length }} platillo(s)</h2>
+    <span class="text-xs text-text-secondary">IVA 15% se aplica al facturar · UTC-5 · Haga clic en la imagen para cambiarla</span>
+  </div>
+  <div class="divide-y divide-outline-variant/10">
+    {% for dish in dishes %}
+    <div class="p-4 md:p-5 hover:bg-surface-containerLow/40 transition-colors">
+      <form method="post" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="dish_id" value="{{ dish.pk }}">
+        <!-- Imagen -->
+        <div class="shrink-0 flex flex-col items-center gap-2">
+          {% if dish.image %}
+            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" class="img-preview" id="img-{{ dish.pk }}">
+          {% else %}
+            <div class="img-preview flex items-center justify-center text-[10px] text-text-secondary bg-surface-containerLow" id="img-{{ dish.pk }}">Sin imagen</div>
+          {% endif %}
+          <label class="btn-ghost !h-7 !px-2 text-[11px] border border-outline-variant/30 cursor-pointer">
+            Cambiar
+            <input type="file" name="image" accept="image/*" class="hidden" onchange="previewDishImage(this, '{{ dish.pk }}')">
+          </label>
+          {% if dish.image %}
+          <label class="inline-flex items-center gap-1 text-[11px] text-text-secondary">
+            <input type="checkbox" name="remove_image" class="rounded"> Quitar
+          </label>
+          {% endif %}
+        </div>
+        <!-- Campos -->
+        <div class="flex-1 grid gap-3 md:grid-cols-12 items-start">
+          <div class="md:col-span-4">
+            <label class="label">Nombre</label>
+            <input type="text" name="name" value="{{ dish.name }}" class="input !h-9 text-sm">
+          </div>
+          <div class="md:col-span-2">
+            <label class="label">Precio</label>
+            <input type="number" name="price" value="{{ dish.price }}" step="0.01" min="0" class="input !h-9 text-sm">
+            <span class="text-[11px] font-mono text-text-secondary">{{ dish.price|usd }}</span>
+          </div>
+          <div class="md:col-span-4">
+            <label class="label">Descripción</label>
+            <input type="text" name="description" value="{{ dish.description }}" class="input !h-9 text-sm" placeholder="Descripción corta" maxlength="255">
+          </div>
+          <div class="md:col-span-2 flex flex-col gap-2 pt-6">
+            <label class="inline-flex items-center gap-1 text-xs">
+              <input type="checkbox" name="active" {% if dish.active %}checked{% endif %} class="rounded"> Activo
+            </label>
+            <div class="flex gap-1">
+              <span class="badge {% if dish.active %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-outline-variant/20 text-text-secondary{% endif %} text-xs">{% if dish.active %}Activo{% else %}Inactivo{% endif %}</span>
+              {% if dish.pk in sheets_by_dish %}<span class="badge bg-primary-soft text-primary-deep border border-primary/20 text-xs">Con receta</span>{% else %}<span class="badge bg-amber-50 text-amber-800 border border-amber-200 text-xs">Sin receta</span>{% endif %}
+            </div>
+          </div>
+          <div class="md:col-span-12 flex justify-end gap-2 pt-2 border-t border-outline-variant/10 mt-1">
+            <button type="submit" class="btn-secondary !h-8 !px-4 text-xs">Guardar cambios</button>
+            <button type="submit" formaction="{% url 'core:admin_dishes' %}" onclick="this.form.querySelector('[name=action]').value='toggle'" class="btn-ghost !h-8 !px-3 text-xs border border-outline-variant/30">{% if dish.active %}Desactivar{% else %}Activar{% endif %}</button>
+            <button type="submit" onclick="if(!confirm('¿Eliminar platillo «{{ dish.name|escapejs }}»?')) return false; this.form.querySelector('[name=action]').value='delete'" class="btn-danger !h-8 !px-3 text-xs">Eliminar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% empty %}
+    <div class="px-6 py-12 text-center text-text-secondary">Sin platillos. Cree el primero arriba.</div>
+    {% endfor %}
+  </div>
+  <div class="px-6 py-3 bg-surface-containerLow border-t border-outline-variant/20 text-xs text-text-secondary flex justify-between">
+    <span>Auditoría: cada alta/cambio queda en <a href="{% url 'audit:trail' %}" class="underline text-primary">Bitácora</a>.</span>
+    <a href="{% url 'core:admin_inventory' %}" class="underline">Gestionar recetas →</a>
+  </div>
+</div>
+
+<script>
+function previewDishImage(input, id){
+  const img = document.getElementById('img-'+id);
+  if(input.files && input.files[0]){
+    const url = URL.createObjectURL(input.files[0]);
+    if(img.tagName === 'IMG'){
+      img.src = url;
+    } else {
+      // replace div with img
+      const newImg = document.createElement('img');
+      newImg.id = 'img-'+id;
+      newImg.className = 'img-preview';
+      newImg.src = url;
+      newImg.alt = 'preview';
+      img.replaceWith(newImg);
+    }
+  }
+}
+document.getElementById('create-image')?.addEventListener('change', function(){
+  const wrap = document.getElementById('create-preview-wrap');
+  const prev = document.getElementById('create-preview');
+  if(this.files && this.files[0]){
+    prev.src = URL.createObjectURL(this.files[0]);
+    wrap.classList.remove('hidden');
+  } else {
+    wrap.classList.add('hidden');
+  }
+});
+</script>
+{% endblock %}

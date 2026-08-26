@@ -13,7 +13,7 @@
   </header>
 
   <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 lg:px-10">
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-6xl">
       <div class="mb-6 flex items-center gap-2 text-xs">
         <a href="{% url 'reservations:portal' %}" class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-white">✓</a>
         <span class="text-emerald-700 font-medium">Fecha</span>
@@ -38,35 +38,99 @@
           <div>
             <h1 class="font-display text-2xl font-semibold text-text-primary">Selecciona tu mesa</h1>
             <p class="mt-1 text-sm text-text-secondary">{{ date }} · {{ time }} → {{ end_at|date:"H:i" }} (bloque 2 h) · {{ guests }} comensal(es) · UTC-5</p>
+            <p class="mt-1 text-xs text-text-secondary">3 salas: <span class="font-semibold">Sala VIP</span> · Terraza · Piso 1 — toca una mesa en el plano o en la lista.</p>
           </div>
           <div class="flex gap-2 text-[11px]">
             <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Disponible</span>
             <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-zinc-300"></span> Ocupada/bloqueada</span>
+            <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span> Seleccionada</span>
           </div>
         </div>
 
         <form method="post" class="mt-6" id="table-form">
           {% csrf_token %}
+
           {% if tables %}
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {% for table in tables %}
-            <label class="group relative flex cursor-pointer flex-col rounded-component border p-4 transition {% if table.is_reserved or table.is_blocked %}bg-zinc-100 border-zinc-200 opacity-60 cursor-not-allowed{% else %}bg-white border-outline-variant/30 hover:border-primary/40 hover:shadow-sm{% endif %}">
-              <input type="checkbox" name="tables" value="{{ table.pk }}" class="peer sr-only" {% if table.is_reserved or table.is_blocked %}disabled{% endif %}>
-              <div class="flex items-center justify-between">
-                <span class="font-semibold text-text-primary">Mesa {{ table.number }}</span>
-                <span class="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary-deep">{{ table.capacity }} pax</span>
-              </div>
-              <div class="mt-2 text-xs {% if table.is_reserved %}text-danger{% elif table.is_blocked %}text-zinc-500{% else %}text-emerald-700{% endif %}">
-                {% if table.is_reserved %}Reservada en este bloque{% elif table.is_blocked %}Bloqueada 2 min (otra reserva en curso){% else %}Disponible{% endif %}
-              </div>
-              <div class="mt-3 hidden peer-checked:block text-xs font-medium text-primary">✓ Seleccionada</div>
-              <div class="pointer-events-none absolute inset-0 rounded-component border-2 border-primary opacity-0 peer-checked:opacity-100"></div>
-            </label>
+          <!-- Tabs de salas -->
+          <div class="mb-4 flex flex-wrap gap-2" role="tablist">
+            <button type="button" data-room-filter="all" class="room-tab active rounded-full border px-4 py-1.5 text-xs font-semibold bg-primary text-white border-primary">Todas las salas</button>
+            {% for room in rooms %}
+            <button type="button" data-room-filter="{{ room.code }}" class="room-tab rounded-full border px-4 py-1.5 text-xs font-semibold bg-white text-text-secondary border-outline-variant/30 hover:border-primary/40">{{ room.label }} ({{ room.tables|length }})</button>
             {% endfor %}
           </div>
-          <p class="mt-3 text-xs text-text-secondary" id="capacity-hint">Selecciona mesas cuya capacidad total cubra {{ guests }} pax. Puedes combinar varias (p. ej. 4+6 para 8, etc. — sistema valida grupos).</p>
+
+          <!-- Plano visual por salas -->
+          <div class="space-y-6" id="rooms-container">
+            {% for room in rooms %}
+            <section data-room-section="{{ room.code }}" class="room-section rounded-component border-2 bg-white overflow-hidden {% if room.code == 'VIP' %}border-amber-200{% elif room.code == 'TERRAZA' %}border-sky-200{% else %}border-zinc-200{% endif %}">
+              <div class="flex items-center justify-between px-4 py-3 {% if room.code == 'VIP' %}bg-amber-50{% elif room.code == 'TERRAZA' %}bg-sky-50{% else %}bg-zinc-50{% endif %} border-b border-outline-variant/20">
+                <h2 class="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
+                  {% if room.code == 'VIP' %}✦{% elif room.code == 'TERRAZA' %}☀{% else %}◧{% endif %} {{ room.label }}
+                  <span class="text-xs font-normal normal-case text-text-secondary">{{ room.tables|length }} mesa(s)</span>
+                </h2>
+                <span class="text-[11px] text-text-secondary">{% if room.code == 'VIP' %}Privacidad · mesas redondas{% elif room.code == 'TERRAZA' %}Aire libre · vista{% else %}Salón principal{% endif %}</span>
+              </div>
+
+              {% if room.tables %}
+              <!-- Croquis: mapa con coordenadas x,y (0-100) -->
+              <div class="relative w-full overflow-hidden bg-[radial-gradient(circle_at_1px_1px,#e5e7eb_1px,transparent_0)] bg-[length:20px_20px]" style="height: 220px;">
+                <div class="absolute inset-3 rounded-xl border border-dashed border-outline-variant/40 bg-white/60 backdrop-blur-[1px]"></div>
+                <p class="absolute top-4 left-6 text-[10px] tracking-widest uppercase text-text-secondary">Plano — arrastra visualmente la mesa</p>
+                {% for table in room.tables %}
+                {% with left=table.x|default:0 top=table.y|default:0 %}
+                <label
+                  class="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group/table"
+                  style="left: {% if table.x %}{{ table.x }}%{% else %}{{ forloop.counter0|add:1 }}0%{% endif %}; top: {% if table.y %}{{ table.y }}%{% else %}52%{% endif %};"
+                  title="Mesa {{ table.number }} · {{ table.capacity }} pax · {{ room.label }}">
+                  <input type="checkbox" name="tables" value="{{ table.pk }}" class="peer sr-only table-checkbox" data-capacity="{{ table.capacity }}" {% if table.is_reserved or table.is_blocked %}disabled{% endif %}>
+                  <div class="flex flex-col items-center">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-full border-2 text-xs font-bold shadow-sm transition
+                      {% if table.is_reserved or table.is_blocked %}bg-zinc-200 border-zinc-300 text-zinc-500 cursor-not-allowed
+                      {% elif table.shape == 'rect' %}rounded-lg
+                      {% else %}rounded-full
+                      {% endif %}
+                      peer-checked:bg-amber-400 peer-checked:border-amber-500 peer-checked:text-zinc-900 peer-checked:shadow-md
+                      {% if not table.is_reserved and not table.is_blocked %}bg-white border-emerald-300 text-emerald-800 hover:border-primary hover:shadow{% endif %}">
+                      {{ table.number }}
+                    </div>
+                    <span class="mt-1 rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold border border-outline-variant/20">{{ table.capacity }} pax</span>
+                    {% if table.is_reserved %}<span class="text-[9px] text-danger font-medium">Reservada</span>{% elif table.is_blocked %}<span class="text-[9px] text-zinc-500">Bloqueada</span>{% endif %}
+                  </div>
+                </label>
+                {% endwith %}
+                {% endfor %}
+                <!-- Puerta / ventana decorativa -->
+                <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] tracking-widest uppercase text-text-secondary bg-white px-2 py-0.5 rounded-full border">↔ Entrada</span>
+              </div>
+
+              <!-- Lista de tarjetas de esa sala -->
+              <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3 bg-[#fcfbf9]">
+                {% for table in room.tables %}
+                <label class="group relative flex cursor-pointer flex-col rounded-component border p-4 transition {% if table.is_reserved or table.is_blocked %}bg-zinc-100 border-zinc-200 opacity-60 cursor-not-allowed{% else %}bg-white border-outline-variant/30 hover:border-primary/40 hover:shadow-sm{% endif %}">
+                  <input type="checkbox" name="tables" value="{{ table.pk }}" class="peer sr-only table-checkbox-card" data-capacity="{{ table.capacity }}" {% if table.is_reserved or table.is_blocked %}disabled{% endif %}>
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-text-primary">Mesa {{ table.number }}</span>
+                    <span class="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary-deep">{{ table.capacity }} pax</span>
+                  </div>
+                  <p class="mt-1 text-[11px] text-text-secondary">{{ room.label }} · x:{{ table.x|floatformat:0 }} y:{{ table.y|floatformat:0 }}</p>
+                  <div class="mt-2 text-xs {% if table.is_reserved %}text-danger{% elif table.is_blocked %}text-zinc-500{% else %}text-emerald-700{% endif %}">
+                    {% if table.is_reserved %}Reservada en este bloque{% elif table.is_blocked %}Bloqueada 2 min (otra reserva en curso){% else %}Disponible{% endif %}
+                  </div>
+                  <div class="mt-3 hidden peer-checked:block text-xs font-medium text-primary">✓ Seleccionada</div>
+                  <div class="pointer-events-none absolute inset-0 rounded-component border-2 border-amber-400 opacity-0 peer-checked:opacity-100"></div>
+                </label>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="p-6 text-sm text-text-secondary">Sin mesas en esta sala.</p>
+              {% endif %}
+            </section>
+            {% endfor %}
+          </div>
+
+          <p class="mt-4 text-xs text-text-secondary" id="capacity-hint">Selecciona mesas cuya capacidad total cubra {{ guests }} pax. Puedes combinar varias salas (ej. 4+6 para 8).</p>
           {% else %}
-          <p class="text-sm text-text-secondary">No hay mesas configuradas.</p>
+          <p class="text-sm text-text-secondary">No hay mesas configuradas. Contacta al administrador.</p>
           {% endif %}
 
           <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/20 pt-5">
@@ -76,28 +140,52 @@
         </form>
       </div>
 
-      <p class="mt-4 text-center text-xs text-text-secondary">Paso 2 de 3 · El bloqueo de 2 min evita reservas simultáneas (RF-28).</p>
+      <p class="mt-4 text-center text-xs text-text-secondary">Paso 2 de 3 · El bloqueo de 2 min evita reservas simultáneas (RF-28). Coordenadas del plano editables por el administrador.</p>
     </div>
   </main>
 </div>
 <script>
-  // hint de capacidad en vivo
   const form = document.getElementById('table-form');
   const hint = document.getElementById('capacity-hint');
-  if (form && hint) {
-    form.addEventListener('change', () => {
-      const checked = [...form.querySelectorAll('input[name="tables"]:checked')];
-      // capacidad está en el texto "X pax" del badge
-      let total = 0;
-      checked.forEach(cb => {
-        const label = cb.closest('label');
-        const badge = label.querySelector('.text-primary-deep');
-        if (badge) total += parseInt(badge.textContent) || 0;
-      });
-      const needed = {{ guests }};
-      hint.textContent = total ? `Capacidad seleccionada: ${total} pax (necesitas ${needed})${total < needed ? ' — insuficiente' : ' ✓ suficiente'}` : `Selecciona mesas cuya capacidad total cubra ${needed} pax.`;
-      hint.className = total >= needed ? 'mt-3 text-xs font-medium text-emerald-700' : 'mt-3 text-xs text-text-secondary';
+  const needed = {{ guests }};
+
+  function syncCheckboxes(value, checked) {
+    // Sincroniza plano circular y tarjeta: mismo value
+    document.querySelectorAll(`input.table-checkbox[value="${value}"], input.table-checkbox-card[value="${value}"]`).forEach(cb => {
+      if (cb.value === value) cb.checked = checked;
     });
   }
+
+  function updateHint() {
+    const checked = [...form.querySelectorAll('input.table-checkbox:checked, input.table-checkbox-card:checked')];
+    // deduplicar por value
+    const seen = new Set(); let total = 0;
+    checked.forEach(cb => {
+      if (!seen.has(cb.value)) { seen.add(cb.value); total += parseInt(cb.dataset.capacity) || 0; }
+    });
+    hint.textContent = total ? `Capacidad seleccionada: ${total} pax (necesitas ${needed})${total < needed ? ' — insuficiente' : ' ✓ suficiente'}` : `Selecciona mesas cuya capacidad total cubra ${needed} pax.`;
+    hint.className = total >= needed ? 'mt-4 text-xs font-medium text-emerald-700' : 'mt-4 text-xs text-text-secondary';
+  }
+
+  if (form) {
+    form.addEventListener('change', (e) => {
+      if (e.target.matches('input.table-checkbox, input.table-checkbox-card')) {
+        syncCheckboxes(e.target.value, e.target.checked);
+        updateHint();
+      }
+    });
+  }
+
+  // Filtro por sala
+  document.querySelectorAll('.room-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.room-tab').forEach(b => b.className = 'room-tab rounded-full border px-4 py-1.5 text-xs font-semibold bg-white text-text-secondary border-outline-variant/30 hover:border-primary/40');
+      btn.className = 'room-tab active rounded-full border px-4 py-1.5 text-xs font-semibold bg-primary text-white border-primary';
+      const filter = btn.dataset.roomFilter;
+      document.querySelectorAll('.room-section').forEach(sec => {
+        sec.style.display = (filter === 'all' || sec.dataset.roomSection === filter) ? '' : 'none';
+      });
+    });
+  });
 </script>
 {% endblock %}

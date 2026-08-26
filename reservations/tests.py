@@ -81,17 +81,22 @@ class ReservationsViewTest(TestCase):
 
     def test_portal_creates_reservation(self):
         self.client.force_login(self.client_user)
-        future = timezone.localtime() + timedelta(hours=13)
+        # Usar mediodía de mañana para garantizar anticipación >12h y horario operativo 10-00
+        future = (timezone.localtime() + timedelta(days=1)).replace(hour=12, minute=0, second=0, microsecond=0)
+        if (future - timezone.localtime()).total_seconds() < 13 * 3600:
+            future = future + timedelta(days=1)
         resp = self.client.post(reverse("reservations:portal"), {
             "email": "cliente@test.com",
             "cedula": "8-123-456",
             "date": future.strftime("%Y-%m-%d"),
             "time": future.strftime("%H:%M"),
-            "guests": "4",
+            "guests": "3",
             "tables": [self.table.pk],
         })
         self.assertRedirects(resp, reverse("reservations:my_reservations"))
         self.assertTrue(Reservation.objects.filter(client_cedula="8-123-456").exists())
+        # guests libre (1-20) — verificar que 3 se guardó
+        self.assertTrue(Reservation.objects.filter(guests=3).exists())
 
     def test_portal_rejects_less_than_12h(self):
         self.client.force_login(self.client_user)

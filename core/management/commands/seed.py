@@ -49,4 +49,52 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(f"Usuario {email} ya existe.")
 
+        # Mesas de ejemplo en 3 salas con coordenadas para el plano visual
+        from reservations.models import Table
+
+        mesas_iniciales = [
+            # Sala VIP — mesas más exclusivas
+            (1, 2, "VIP", 15, 30, "circle"),
+            (2, 4, "VIP", 50, 25, "circle"),
+            (3, 6, "VIP", 80, 30, "circle"),
+            (4, 12, "VIP", 50, 70, "circle"),
+            # Terraza
+            (5, 2, "TERRAZA", 20, 35, "circle"),
+            (6, 4, "TERRAZA", 55, 30, "circle"),
+            (7, 6, "TERRAZA", 80, 55, "circle"),
+            (8, 4, "TERRAZA", 25, 75, "circle"),
+            # Piso 1 — salón principal
+            (9, 2, "PISO_1", 15, 25, "circle"),
+            (10, 4, "PISO_1", 45, 25, "circle"),
+            (11, 6, "PISO_1", 75, 25, "circle"),
+            (12, 4, "PISO_1", 15, 70, "circle"),
+            (13, 6, "PISO_1", 45, 70, "circle"),
+            (14, 12, "PISO_1", 75, 70, "circle"),
+        ]
+        created_count = 0
+        for number, cap, room, x, y, shape in mesas_iniciales:
+            _, created = Table.objects.get_or_create(
+                number=number,
+                defaults={"capacity": cap, "room": room, "x": x, "y": y, "shape": shape},
+            )
+            if created:
+                created_count += 1
+            else:
+                # asegurar sala/coords en mesas preexistentes sin room
+                t = Table.objects.get(number=number)
+                updated = False
+                if not t.room:
+                    t.room = room
+                    updated = True
+                if t.x == 0 and t.y == 0:
+                    t.x = x
+                    t.y = y
+                    updated = True
+                if updated:
+                    t.save(update_fields=["room", "x", "y"] if t.x else ["room"])
+        if created_count:
+            self.stdout.write(self.style.SUCCESS(f"{created_count} mesas nuevas creadas. Total: {Table.objects.count()} en 3 salas (VIP/Terraza/Piso 1)."))
+        else:
+            self.stdout.write(f"Mesas existentes: {Table.objects.count()} (3 salas configuradas).")
+
         self.stdout.write(self.style.SUCCESS("Seed completado."))

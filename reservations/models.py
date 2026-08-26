@@ -13,15 +13,30 @@ class TableStatus(models.TextChoices):
     BLOCKED = "BLOCKED", "Bloqueada"
 
 
+class Room(models.TextChoices):
+    VIP = "VIP", "Sala VIP"
+    TERRAZA = "TERRAZA", "Terraza"
+    PISO_1 = "PISO_1", "Piso 1"
+
+
 class Table(models.Model):
-    """Mesa del restaurante (capacidades soportadas: 2, 4, 6 y 12)."""
+    """Mesa del restaurante (capacidades soportadas: 2, 4, 6 y 12).
+
+    Salas: VIP, Terraza, Piso 1 (Room). Coordenadas x,y para plano visual.
+    """
 
     number = models.PositiveIntegerField(unique=True)
     capacity = models.PositiveIntegerField(
         choices=[(2, "2"), (4, "4"), (6, "6"), (12, "12")]
     )
-    x = models.FloatField(default=0)
-    y = models.FloatField(default=0)
+    room = models.CharField(
+        max_length=16,
+        choices=Room.choices,
+        default=Room.PISO_1,
+        verbose_name="Sala",
+    )
+    x = models.FloatField(default=0, help_text="Coordenada X (0-100) para plano visual")
+    y = models.FloatField(default=0, help_text="Coordenada Y (0-100) para plano visual")
     shape = models.CharField(max_length=16, default="circle")
     is_contiguous_group = models.CharField(max_length=255, blank=True)
     disabled = models.BooleanField(default=False)

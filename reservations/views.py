@@ -116,12 +116,10 @@ def reservation_portal(request):
 
         try:
             guests = int(guests_raw)
-            if guests not in [2, 4, 6, 12]:
-                # Permitir rango legacy 1..12 para compatibilidad con tests viejos/portal.html
-                if guests < 1 or guests > 12:
-                    raise ValueError
+            if guests < 1 or guests > 20:
+                raise ValueError
         except ValueError:
-            messages.error(request, "Seleccione 2, 4, 6 o 12 comensales.")
+            messages.error(request, "Ingrese el número de comensales (1 a 20).")
             return redirect("reservations:portal")
 
         try:
@@ -236,9 +234,21 @@ def reservation_tables(request):
         return redirect("reservations:confirm")
 
     tables = _available_tables_for(start_at, end_at)
-    # Agrupar por capacidad para filtros visuales
+    from .models import Room
+    # Agrupar por sala para plano visual
+    rooms = []
+    rooms_order = [Room.VIP, Room.TERRAZA, Room.PISO_1]
+    room_labels = dict(Room.choices)
+    for room_code in rooms_order:
+        room_tables = [t for t in tables if t.room == room_code]
+        rooms.append({
+            "code": room_code,
+            "label": room_labels[room_code],
+            "tables": room_tables,
+        })
     return render(request, "reservations/step2_tables.html", {
         "tables": tables,
+        "rooms": rooms,
         "guests": guests,
         "date": data["date"],
         "time": data["time"],
@@ -393,13 +403,14 @@ def table_list(request):
     """Estado en tiempo real del croquis de mesas."""
     from django.http import JsonResponse
 
-    now = timezone.now()
     data = []
     for table in Table.objects.filter(disabled=False):
         data.append({
             "id": table.pk,
             "number": table.number,
             "capacity": table.capacity,
+            "room": table.room,
+            "room_display": table.get_room_display(),
             "x": table.x,
             "y": table.y,
             "shape": table.shape,
@@ -439,14 +450,16 @@ def _guard_waiter(request):
 
 @login_required
 def floor_plan(request):
-    """Plano de salas del Mesero: estado real de cada mesa (propiedad `status`)."""
+    """Plano de salas del Mesero: estado real de cada mesa por sala (propiedad `status`)."""
     blocked = _guard_waiter(request)
     if blocked:
         return blocked
 
     from kitchen.models import OrderStatus
 
-    tables = Table.objects.prefetch_related("orders")
+    from .models import Room
+
+    tables = Table.objects.prefetch_related("orders").order_by("room", "number")
     table_rows = []
     for table in tables:
         active_order = table.orders.filter(
@@ -462,11 +475,18 @@ def floor_plan(request):
             "active_order": active_order,
             "has_order": active_order is not None,
         })
+    # Agrupar por sala para el template
+    rooms_order = [Room.VIP, Room.TERRAZA, Room.PISO_1]
+    room_labels = dict(Room.choices)
+    rooms = []
+    for code in rooms_order:
+        rows = [r for r in table_rows if r["table"].room == code]
+        rooms.append({"code": code, "label": room_labels[code], "rows": rows})
 
     return render(
         request,
         "reservations/floor_plan.html",
-        {"tables": table_rows},
+        {"tables": table_rows, "rooms": rooms},
     )
 
 

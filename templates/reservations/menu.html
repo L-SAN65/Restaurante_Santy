@@ -5,7 +5,7 @@
 {% block body %}
 <div class="min-h-screen bg-[#fbf9f4] flex flex-col">
   <!-- Header público (sin auth) -->
-  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-outline-variant/30">
+  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur border-b border-outline-variant/30">
     <div class="mx-auto max-w-[1440px] px-4 lg:px-10 h-20 flex items-center justify-between">
       <a href="{% url 'reservations:portal' %}" class="font-display text-2xl font-semibold tracking-tight text-text-primary">Luxe Dining <span class="font-sans text-xs font-normal tracking-[0.2em] text-text-secondary ml-1">SANTY</span></a>
       <nav class="hidden md:flex items-center gap-6 text-sm">
@@ -17,21 +17,20 @@
     </div>
   </header>
 
-  <!-- Hero + acceso cliente (primer paso del flujo) -->
+  <!-- Hero + acceso cliente -->
   <section class="bg-[#f5f3ee] border-b border-outline-variant/20 py-10 md:py-14">
     <div class="mx-auto max-w-[1440px] px-4 lg:px-10">
       <div class="grid gap-8 lg:grid-cols-2 items-center">
         <div class="text-center lg:text-left">
           <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-text-secondary">Haute Management · UTC-5</p>
           <h1 class="font-display text-4xl md:text-[52px] font-semibold leading-none text-text-primary">Nuestro Menú</h1>
-          <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base lg:mx-0">Selección curada del Chef — ingredientes de temporada, precios en USD con IVA 15% incluido en factura. Consulta disponibilidad del día.</p>
+          <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base lg:mx-0">Selección curada del Chef — ingredientes de temporada, precios en USD con IVA 15% incluido en factura. Toque una foto para ampliar.</p>
           <div class="mt-6 flex flex-wrap justify-center lg:justify-start gap-3 text-xs">
             <span class="badge bg-white border border-outline-variant/30">Zona horaria UTC-5 sin DST</span>
             <span class="badge bg-white border border-outline-variant/30">Moneda USD</span>
             <span class="badge bg-white border border-outline-variant/30">Bloques de 2 h</span>
           </div>
         </div>
-        <!-- Card acceso cliente: primer flujo pedido: menú → login/registro -->
         <div class="card bg-white p-6 md:p-7 shadow-sm border border-outline-variant/30">
           <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-secondary">Módulo Cliente</p>
           <h2 class="mt-1 font-display text-xl font-semibold text-text-primary">¿Quieres reservar?</h2>
@@ -47,45 +46,88 @@
             <span>·</span>
             <a href="{% url 'core:login' %}" class="font-medium text-text-primary underline">Acceso personal</a>
           </div>
-          <p class="mt-3 text-[11px] leading-relaxed text-text-secondary">Flujo Luxe: <span class="font-medium text-text-primary">Menú</span> → <span class="font-medium">Login / Registro cliente</span> → <span class="font-medium">Reserva en 3 pasos</span>. Formularios separados de personal (RF-01/34).</p>
+          <p class="mt-3 text-[11px] leading-relaxed text-text-secondary">Flujo Luxe: <span class="font-medium text-text-primary">Menú</span> → <span class="font-medium">Login / Registro cliente</span> → <span class="font-medium">Reserva en 3 pasos</span>.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Contenido -->
-  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-10 lg:px-10">
+  <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 lg:px-10">
     {% if dishes %}
-    <div class="mb-8 flex items-center justify-between">
-      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">{{ dishes|length }} platillo{{ dishes|length|pluralize }} disponible{{ dishes|length|pluralize }}</p>
-      <a href="{% url 'reservations:portal' %}" class="text-xs font-medium text-primary underline decoration-outline-variant underline-offset-4 hover:decoration-primary">¿Quieres reservar? Hazlo aquí</a>
+    <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary"><span id="count">{{ dishes|length }}</span> platillo{{ dishes|length|pluralize }}</p>
+        <span class="text-xs text-text-secondary">· Toque la imagen para ampliar</span>
+      </div>
+      <div class="flex flex-wrap gap-3 items-center">
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10 18a8 8 0 110-16 8 8 0 010 16z"/></svg>
+          <input id="search" type="search" placeholder="Buscar platillo…" class="input !h-9 !pl-9 w-56 text-sm" autocomplete="off">
+        </div>
+        <label class="inline-flex items-center gap-2 text-xs bg-white border border-outline-variant/30 rounded-full px-3 py-1.5">
+          <input type="checkbox" id="only-available" class="rounded"> Solo disponibles
+        </label>
+        <a href="{% url 'reservations:portal' %}" class="text-xs font-medium text-primary underline decoration-outline-variant underline-offset-4">Reservar →</a>
+      </div>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div id="grid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {% for dish in dishes %}
-      <article class="card group flex flex-col overflow-hidden p-0 hover:shadow-lg transition-shadow">
-        <div class="h-1 w-full bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div class="p-5 flex flex-1 flex-col">
-          <div class="flex items-start justify-between gap-3">
-            <h3 class="font-display text-lg font-semibold leading-tight text-text-primary">{{ dish.name }}</h3>
-            <span class="shrink-0 rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary-deep">{{ dish.price|usd }}</span>
-          </div>
-          <div class="mt-3 flex items-center gap-2">
-            {% if dish.availability == 'ACTIVE' %}
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-emerald-700">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Disponible
+      <article class="dish-card group flex flex-col overflow-hidden rounded-card border border-outline-variant/30 bg-white hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5" data-name="{{ dish.name|lower }}" data-available="{% if dish.active %}1{% else %}0{% endif %}">
+        <div class="relative h-52 overflow-hidden bg-surface-containerLow cursor-zoom-in" onclick="openModal('{{ dish.pk }}')">
+          {% if dish.image %}
+            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+          {% else %}
+            <div class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-amber-50 to-surface-containerLow text-text-secondary">
+              <svg class="h-10 w-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span class="text-xs font-medium">Sin imagen</span>
+            </div>
+          {% endif %}
+          <div class="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur border border-outline-variant/30 px-3 py-1 text-sm font-bold text-primary-deep shadow-sm">{{ dish.price|usd }}</div>
+          <div class="absolute bottom-3 left-3">
+            {% if dish.active %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] shadow">
+                <span class="h-1.5 w-1.5 rounded-full bg-white"></span> Disponible
               </span>
             {% else %}
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-zinc-500">
-                <span class="h-1.5 w-1.5 rounded-full bg-zinc-400"></span> Deshabilitado por stock
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-800 text-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.05em] shadow">
+                <span class="h-1.5 w-1.5 rounded-full bg-zinc-400"></span> No disponible
               </span>
             {% endif %}
-            <span class="text-[11px] text-text-secondary">· IVA 15% en factura</span>
           </div>
-          <p class="mt-3 text-sm leading-relaxed text-text-secondary">Platillo de la carta Santy elaborado bajo ficha técnica y control de inventario.</p>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+        </div>
+        <div class="p-5 flex flex-1 flex-col">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-display text-lg font-semibold leading-tight text-text-primary line-clamp-2 flex-1">{{ dish.name }}</h3>
+          </div>
+          {% if dish.description %}
+            <p class="mt-2 text-sm leading-relaxed text-text-secondary line-clamp-2">{{ dish.description }}</p>
+          {% else %}
+            <p class="mt-2 text-sm leading-relaxed text-text-secondary line-clamp-2">Platillo de la carta Santy elaborado bajo ficha técnica y control de inventario.</p>
+          {% endif %}
+          <div class="mt-3 flex items-center gap-2 text-[11px] text-text-secondary">
+            <span>IVA 15% en factura</span>
+            <span>·</span>
+            <button type="button" onclick="openModal('{{ dish.pk }}')" class="font-medium text-primary hover:underline">Ver detalle</button>
+          </div>
+        </div>
+        <!-- modal data (hidden) -->
+        <div id="modal-data-{{ dish.pk }}" class="hidden">
+          <div class="modal-image">{% if dish.image %}{{ dish.image.url }}{% endif %}</div>
+          <div class="modal-name">{{ dish.name }}</div>
+          <div class="modal-price">{{ dish.price|usd }}</div>
+          <div class="modal-desc">{% if dish.description %}{{ dish.description }}{% else %}Platillo de la carta Santy elaborado bajo ficha técnica y control de inventario.{% endif %}</div>
+          <div class="modal-available">{% if dish.active %}Disponible{% else %}No disponible{% endif %}</div>
         </div>
       </article>
       {% endfor %}
+    </div>
+
+    <div id="empty-search" class="hidden card py-12 text-center mt-6">
+      <p class="font-display text-lg font-semibold">Sin resultados</p>
+      <p class="text-sm text-text-secondary mt-1">Pruebe otro término o desactive el filtro.</p>
     </div>
 
     <div class="mt-10 card bg-surface-containerLow p-6 text-center">
@@ -94,10 +136,109 @@
       <a href="{% url 'reservations:portal' %}" class="btn-primary mt-4 inline-flex">Reservar ahora</a>
     </div>
 
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onclick="if(event.target===this) closeModal()">
+      <div class="relative w-full max-w-2xl rounded-card overflow-hidden bg-white shadow-2xl animate-[fadeScaleIn_200ms_ease-out]">
+        <button onclick="closeModal()" class="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors" aria-label="Cerrar">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div id="lb-image-wrap" class="h-72 md:h-80 bg-surface-containerLow overflow-hidden">
+          <img id="lb-image" src="" alt="" class="h-full w-full object-cover">
+          <div id="lb-placeholder" class="hidden h-full w-full flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-amber-50 to-surface-containerLow text-text-secondary">
+            <svg class="h-12 w-12 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span class="text-sm">Sin imagen</span>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="flex items-start justify-between gap-4">
+            <h3 id="lb-name" class="font-display text-2xl font-semibold text-text-primary"></h3>
+            <span id="lb-price" class="shrink-0 rounded-full bg-primary text-white px-4 py-1.5 text-sm font-bold"></span>
+          </div>
+          <p id="lb-desc" class="mt-3 text-sm leading-relaxed text-text-secondary"></p>
+          <div class="mt-4 flex items-center gap-2">
+            <span id="lb-badge" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.05em]"></span>
+            <span class="text-xs text-text-secondary">· IVA 15% en factura</span>
+          </div>
+          <div class="mt-6 flex gap-3">
+            <a href="{% url 'reservations:portal' %}" class="btn-primary flex-1 text-center !py-3">Reservar mesa</a>
+            <button onclick="closeModal()" class="btn-ghost flex-1">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      const search = document.getElementById('search');
+      const onlyAv = document.getElementById('only-available');
+      const cards = Array.from(document.querySelectorAll('.dish-card'));
+      const count = document.getElementById('count');
+      const empty = document.getElementById('empty-search');
+      function applyFilter(){
+        const q = (search.value||'').toLowerCase().trim();
+        const only = onlyAv.checked;
+        let visible=0;
+        cards.forEach(c=>{
+          const name = c.dataset.name;
+          const av = c.dataset.available === '1';
+          const matchQ = !q || name.includes(q);
+          const matchAv = !only || av;
+          const show = matchQ && matchAv;
+          c.style.display = show ? '' : 'none';
+          if(show) visible++;
+        });
+        count.textContent = visible;
+        empty.classList.toggle('hidden', visible!==0);
+      }
+      search?.addEventListener('input', applyFilter);
+      onlyAv?.addEventListener('change', applyFilter);
+      window.openModal = function(id){
+        const data = document.getElementById('modal-data-'+id);
+        if(!data) return;
+        const img = data.querySelector('.modal-image')?.textContent.trim();
+        const name = data.querySelector('.modal-name')?.textContent.trim();
+        const price = data.querySelector('.modal-price')?.textContent.trim();
+        const desc = data.querySelector('.modal-desc')?.textContent.trim();
+        const av = data.querySelector('.modal-available')?.textContent.trim();
+        document.getElementById('lb-name').textContent = name;
+        document.getElementById('lb-price').textContent = price;
+        document.getElementById('lb-desc').textContent = desc;
+        const badge = document.getElementById('lb-badge');
+        if(av === 'Disponible'){
+          badge.className = 'inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.05em] text-emerald-700';
+          badge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Disponible';
+        } else {
+          badge.className = 'inline-flex items-center gap-1.5 rounded-full bg-zinc-100 border border-zinc-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.05em] text-zinc-600';
+          badge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-zinc-400"></span> No disponible';
+        }
+        const lbImg = document.getElementById('lb-image');
+        const ph = document.getElementById('lb-placeholder');
+        if(img){
+          lbImg.src = img;
+          lbImg.alt = name;
+          lbImg.classList.remove('hidden');
+          ph.classList.add('hidden'); ph.classList.remove('flex');
+        } else {
+          lbImg.classList.add('hidden');
+          ph.classList.remove('hidden'); ph.classList.add('flex');
+        }
+        document.getElementById('lightbox').classList.remove('hidden');
+        document.getElementById('lightbox').classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      };
+      window.closeModal = function(){
+        document.getElementById('lightbox').classList.add('hidden');
+        document.getElementById('lightbox').classList.remove('flex');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+    })();
+    </script>
+
     {% else %}
     <div class="card py-16 text-center">
       <p class="font-display text-xl font-semibold text-text-primary">Carta en actualización</p>
-      <p class="mx-auto mt-2 max-w-md text-sm text-text-secondary">Aún no hay platillos activos. El administrador los gestiona desde <span class="font-mono text-xs">/admin/kitchen/dish/</span>. Vuelve pronto.</p>
+      <p class="mx-auto mt-2 max-w-md text-sm text-text-secondary">Aún no hay platillos activos. El administrador los gestiona desde <span class="font-mono text-xs">/dashboard/admin/platos/</span>. Vuelve pronto.</p>
       <a href="{% url 'reservations:portal' %}" class="btn-secondary mt-6">Volver a reservas</a>
     </div>
     {% endif %}

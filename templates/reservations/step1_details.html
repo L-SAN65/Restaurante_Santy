@@ -53,14 +53,8 @@
             </div>
             <div>
               <label for="guests" class="label">Comensales *</label>
-              <select id="guests" name="guests" class="input" required>
-                <option value="" disabled selected>Seleccione</option>
-                <option value="2">2 personas</option>
-                <option value="4">4 personas</option>
-                <option value="6">6 personas</option>
-                <option value="12">12 personas</option>
-              </select>
-              <p class="mt-1 text-[11px] text-text-secondary">Capacidades: 2 · 4 · 6 · 12</p>
+              <input type="number" id="guests" name="guests" class="input" min="1" max="20" step="1" placeholder="Ej. 3" required>
+              <p class="mt-1 text-[11px] text-text-secondary">1 a 20 — el sistema combinará mesas de 2 · 4 · 6 · 12</p>
             </div>
           </div>
           <div class="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/20 pt-5">

@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from audit.models import ActionType, AuditLog, Result
 
@@ -380,7 +380,6 @@ def user_management(request):
         user_id = request.POST.get("user_id")
         target = None
         if user_id:
-            from django.shortcuts import get_object_or_404
             target = get_object_or_404(User, pk=user_id)
 
         if action == "change_role" and target:
@@ -490,3 +489,484 @@ def warehouse_dashboard(request):
         "core/warehouse_dashboard.html",
         {"totals": totals, "inventory_items": critical[:20]},
     )
+
+
+# ---------------------------------------------------------------------------
+# Panel Administrador — Gestión integrada (RF-13/14/20/27)
+# Platos, Mesas con ubicación y Insumos+Recetas dentro del dashboard ADMIN
+# ---------------------------------------------------------------------------
+
+
+@login_required
+def admin_dishes(request):
+    """Gestión de platos (Dish) — solo ADMIN. CRUD completo desde el dashboard."""
+    blocked = _guard_admin(request)
+    if blocked:
+        return blocked
+    from audit.models import ActionType, AuditLog, Result
+    from kitchen.models import Dish
+    from decimal import Decimal, InvalidOperation
+
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+
+        if action == "create":
+            name = request.POST.get("name", "").strip()
+            price_raw = request.POST.get("price", "").strip()
+            description = request.POST.get("description", "").strip()
+            active = request.POST.get("active") == "on"
+            image = request.FILES.get("image")
+            if not name:
+                messages.error(request, "El nombre del platillo es obligatorio.")
+                return redirect("core:admin_dishes")
+            try:
+                price = Decimal(price_raw)
+                if price < 0:
+                    raise ValueError
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Precio inválido. Use formato 0.00 USD.")
+                return redirect("core:admin_dishes")
+            if Dish.objects.filter(name__iexact=name).exists():
+                messages.error(request, f"Ya existe un platillo con el nombre «{name}».")
+                return redirect("core:admin_dishes")
+            # Validar imagen
+            if image:
+                if image.size > 2 * 1024 * 1024:
+                    messages.error(request, "La imagen no debe superar 2MB.")
+                    return redirect("core:admin_dishes")
+                if not image.content_type.startswith("image/"):
+                    messages.error(request, "El archivo debe ser una imagen (JPG/PNG).")
+                    return redirect("core:admin_dishes")
+            dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image)
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Dish", object_id=dish.pk, detail=f"Platillo creado: {name} ${price} img={bool(image)}")
+            messages.success(request, f"Platillo «{name}» creado.")
+            return redirect("core:admin_dishes")
+
+        if action == "update":
+            dish_id = request.POST.get("dish_id")
+            dish = get_object_or_404(Dish, pk=dish_id) if dish_id else None
+            if not dish:
+                messages.error(request, "Platillo no encontrado.")
+                return redirect("core:admin_dishes")
+            name = request.POST.get("name", "").strip()
+            price_raw = request.POST.get("price", "").strip()
+            description = request.POST.get("description", "").strip()
+            active = request.POST.get("active") == "on"
+            image = request.FILES.get("image")
+            remove_image = request.POST.get("remove_image") == "on"
+            if not name:
+                messages.error(request, "El nombre es obligatorio.")
+                return redirect("core:admin_dishes")
+            try:
+                price = Decimal(price_raw)
+                if price < 0:
+                    raise ValueError
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Precio inválido.")
+                return redirect("core:admin_dishes")
+            if Dish.objects.filter(name__iexact=name).exclude(pk=dish.pk).exists():
+                messages.error(request, f"Ya existe otro platillo con el nombre «{name}».")
+                return redirect("core:admin_dishes")
+            dish.name = name
+            dish.price = price
+            dish.description = description
+            dish.active = active
+            if remove_image and dish.image:
+                dish.image.delete(save=False)
+                dish.image = None
+            if image:
+                if image.size > 2 * 1024 * 1024:
+                    messages.error(request, "La imagen no debe superar 2MB.")
+                    return redirect("core:admin_dishes")
+                if not image.content_type.startswith("image/"):
+                    messages.error(request, "El archivo debe ser una imagen.")
+                    return redirect("core:admin_dishes")
+                if dish.image:
+                    dish.image.delete(save=False)
+                dish.image = image
+            dish.save()
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Dish", object_id=dish.pk, detail=f"Platillo actualizado: {name} ${price} activo={active} img={bool(dish.image)}")
+            messages.success(request, f"Platillo «{name}» actualizado.")
+            return redirect("core:admin_dishes")
+
+        if action == "toggle":
+            dish_id = request.POST.get("dish_id")
+            dish = get_object_or_404(Dish, pk=dish_id)
+            dish.active = not dish.active
+            dish.save(update_fields=["active"])
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Dish", object_id=dish.pk, detail=f"Platillo {'activado' if dish.active else 'desactivado'}: {dish.name}")
+            messages.success(request, f"Platillo «{dish.name}» {'activado' if dish.active else 'desactivado'}.")
+            return redirect("core:admin_dishes")
+
+        if action == "delete":
+            dish_id = request.POST.get("dish_id")
+            dish = get_object_or_404(Dish, pk=dish_id)
+            name = dish.name
+            # Si tiene ficha técnica, eliminarla en cascada evita órfanos
+            if dish.image:
+                try:
+                    dish.image.delete(save=False)
+                except Exception:
+                    pass
+            dish.delete()
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Dish", object_id="", detail=f"Platillo eliminado: {name}")
+            messages.success(request, f"Platillo «{name}» eliminado.")
+            return redirect("core:admin_dishes")
+
+        messages.error(request, "Acción no reconocida.")
+        return redirect("core:admin_dishes")
+
+    from kitchen.models import Dish
+    dishes = Dish.objects.all().order_by("name")
+    # Conteo de fichas para indicador
+    from inventory.models import TechnicalSheet
+    sheets_by_dish = set(TechnicalSheet.objects.values_list("dish_id", flat=True))
+    return render(request, "core/admin_dishes.html", {
+        "dishes": dishes,
+        "sheets_by_dish": sheets_by_dish,
+    })
+
+
+@login_required
+def admin_tables(request):
+    """Gestión de mesas con ubicación (x,y, forma) — solo ADMIN."""
+    blocked = _guard_admin(request)
+    if blocked:
+        return blocked
+    from audit.models import ActionType, AuditLog, Result
+    from reservations.models import Table
+
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+
+        if action == "create":
+            number_raw = request.POST.get("number", "").strip()
+            capacity_raw = request.POST.get("capacity", "").strip()
+            x_raw = request.POST.get("x", "0").strip() or "0"
+            y_raw = request.POST.get("y", "0").strip() or "0"
+            shape = request.POST.get("shape", "circle").strip() or "circle"
+            room = request.POST.get("room", "PISO_1").strip() or "PISO_1"
+            is_contiguous_group = request.POST.get("is_contiguous_group", "").strip()
+            disabled = request.POST.get("disabled") == "on"
+            try:
+                number = int(number_raw)
+                capacity = int(capacity_raw)
+                x = float(x_raw)
+                y = float(y_raw)
+                if capacity not in [2, 4, 6, 12]:
+                    raise ValueError("Capacidad debe ser 2, 4, 6 o 12")
+                if room not in ["VIP", "TERRAZA", "PISO_1"]:
+                    raise ValueError("Sala debe ser VIP, Terraza o Piso 1")
+                if number <= 0:
+                    raise ValueError
+            except (ValueError, TypeError) as exc:
+                messages.error(request, f"Datos de mesa inválidos: {exc}")
+                return redirect("core:admin_tables")
+            if Table.objects.filter(number=number).exists():
+                messages.error(request, f"Ya existe la mesa Nº {number}.")
+                return redirect("core:admin_tables")
+            table = Table.objects.create(
+                number=number, capacity=capacity, room=room, x=x, y=y,
+                shape=shape, is_contiguous_group=is_contiguous_group, disabled=disabled
+            )
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Table", object_id=table.pk, detail=f"Mesa creada Nº{number} cap {capacity} sala {room} pos({x},{y}) {shape}")
+            messages.success(request, f"Mesa Nº {number} creada en {table.get_room_display()}.")
+            return redirect("core:admin_tables")
+
+        if action == "update":
+            table_id = request.POST.get("table_id")
+            table = get_object_or_404(Table, pk=table_id)
+            number_raw = request.POST.get("number", "").strip()
+            capacity_raw = request.POST.get("capacity", "").strip()
+            x_raw = request.POST.get("x", "0").strip() or "0"
+            y_raw = request.POST.get("y", "0").strip() or "0"
+            shape = request.POST.get("shape", "circle").strip() or "circle"
+            room = request.POST.get("room", "PISO_1").strip() or "PISO_1"
+            is_contiguous_group = request.POST.get("is_contiguous_group", "").strip()
+            disabled = request.POST.get("disabled") == "on"
+            try:
+                number = int(number_raw)
+                capacity = int(capacity_raw)
+                x = float(x_raw)
+                y = float(y_raw)
+                if capacity not in [2, 4, 6, 12]:
+                    raise ValueError("Capacidad debe ser 2, 4, 6 o 12")
+                if room not in ["VIP", "TERRAZA", "PISO_1"]:
+                    raise ValueError("Sala debe ser VIP, Terraza o Piso 1")
+            except (ValueError, TypeError) as exc:
+                messages.error(request, f"Datos inválidos: {exc}")
+                return redirect("core:admin_tables")
+            if Table.objects.filter(number=number).exclude(pk=table.pk).exists():
+                messages.error(request, f"Ya existe otra mesa con Nº {number}.")
+                return redirect("core:admin_tables")
+            table.number = number
+            table.capacity = capacity
+            table.room = room
+            table.x = x
+            table.y = y
+            table.shape = shape
+            table.is_contiguous_group = is_contiguous_group
+            table.disabled = disabled
+            table.save()
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Table", object_id=table.pk, detail=f"Mesa Nº{number} actualizada cap {capacity} sala {room} pos({x},{y})")
+            messages.success(request, f"Mesa Nº {number} actualizada.")
+            return redirect("core:admin_tables")
+
+        if action == "toggle_disabled":
+            table_id = request.POST.get("table_id")
+            table = get_object_or_404(Table, pk=table_id)
+            table.disabled = not table.disabled
+            table.save(update_fields=["disabled"])
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Table", object_id=table.pk, detail=f"Mesa Nº{table.number} {'deshabilitada' if table.disabled else 'habilitada'}")
+            messages.success(request, f"Mesa Nº {table.number} {'deshabilitada' if table.disabled else 'habilitada'}.")
+            return redirect("core:admin_tables")
+
+        if action == "delete":
+            table_id = request.POST.get("table_id")
+            table = get_object_or_404(Table, pk=table_id)
+            if table.reservations.exists() or table.orders.exists():
+                messages.error(request, f"No se puede eliminar la mesa Nº {table.number} porque tiene reservas o comandas asociadas. Deshabilítela en su lugar.")
+                return redirect("core:admin_tables")
+            number = table.number
+            table.delete()
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Table", object_id="", detail=f"Mesa eliminada Nº{number}")
+            messages.success(request, f"Mesa Nº {number} eliminada.")
+            return redirect("core:admin_tables")
+
+        if action == "update_position":
+            table_id = request.POST.get("table_id")
+            x_raw = request.POST.get("x", "0").strip() or "0"
+            y_raw = request.POST.get("y", "0").strip() or "0"
+            try:
+                x = float(x_raw)
+                y = float(y_raw)
+                # limitar a sala 0..30
+                if x < 0 or y < 0 or x > 40 or y > 30:
+                    raise ValueError("Coordenadas fuera de la sala (0–40, 0–30)")
+            except (ValueError, TypeError) as exc:
+                is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("x-requested-with") == "XMLHttpRequest"
+                if is_ajax:
+                    from django.http import JsonResponse
+                    return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+                messages.error(request, f"Posición inválida: {exc}")
+                return redirect("core:admin_tables")
+            table = get_object_or_404(Table, pk=table_id)
+            table.x = x
+            table.y = y
+            table.save(update_fields=["x", "y"])
+            AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
+                         object_type="Table", object_id=table.pk, detail=f"Mesa Nº{table.number} reubicada a ({x},{y})")
+            is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("x-requested-with") == "XMLHttpRequest"
+            if is_ajax:
+                from django.http import JsonResponse
+                return JsonResponse({"ok": True, "x": x, "y": y, "number": table.number})
+            messages.success(request, f"Mesa Nº {table.number} reubicada a ({x}, {y}).")
+            return redirect("core:admin_tables")
+
+        messages.error(request, "Acción no reconocida.")
+        return redirect("core:admin_tables")
+
+    from reservations.models import Table
+    tables = Table.objects.all().order_by("number")
+    return render(request, "core/admin_tables.html", {"tables": tables})
+
+
+@login_required
+def admin_inventory(request):
+    """Gestión de inventario + recetas (insumos y fichas técnicas) — solo ADMIN."""
+    blocked = _guard_admin(request)
+    if blocked:
+        return blocked
+    from audit.models import ActionType, AuditLog, Result
+    from inventory.models import Ingredient, TechnicalSheet, TechnicalSheetItem
+    from kitchen.models import Dish
+    from decimal import Decimal, InvalidOperation
+
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+
+        # --- Insumos ---
+        if action == "create_ingredient":
+            name = request.POST.get("name", "").strip()
+            unit = request.POST.get("unit", "").strip()
+            stock_raw = request.POST.get("current_stock", "0").strip() or "0"
+            min_raw = request.POST.get("min_stock", "0").strip() or "0"
+            cost_raw = request.POST.get("average_cost", "0").strip() or "0"
+            active = request.POST.get("active") == "on"
+            if not name or not unit:
+                messages.error(request, "Nombre y unidad del insumo son obligatorios.")
+                return redirect("core:admin_inventory")
+            try:
+                stock = Decimal(stock_raw)
+                min_stock = Decimal(min_raw)
+                cost = Decimal(cost_raw)
+                if stock < 0 or min_stock < 0 or cost < 0:
+                    raise ValueError
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Valores numéricos inválidos para stock/costo.")
+                return redirect("core:admin_inventory")
+            if Ingredient.objects.filter(name__iexact=name).exists():
+                messages.error(request, f"Ya existe un insumo con el nombre «{name}».")
+                return redirect("core:admin_inventory")
+            ing = Ingredient.objects.create(name=name, unit=unit, current_stock=stock, min_stock=min_stock, average_cost=cost, active=active)
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="Ingredient", object_id=ing.pk, detail=f"Insumo creado: {name} ({unit}) stock {stock} costo ${cost}")
+            messages.success(request, f"Insumo «{name}» creado.")
+            return redirect("core:admin_inventory")
+
+        if action == "update_ingredient":
+            ing_id = request.POST.get("ingredient_id")
+            ing = get_object_or_404(Ingredient, pk=ing_id)
+            name = request.POST.get("name", "").strip()
+            unit = request.POST.get("unit", "").strip()
+            stock_raw = request.POST.get("current_stock", "0").strip() or "0"
+            min_raw = request.POST.get("min_stock", "0").strip() or "0"
+            cost_raw = request.POST.get("average_cost", "0").strip() or "0"
+            active = request.POST.get("active") == "on"
+            if not name or not unit:
+                messages.error(request, "Nombre y unidad son obligatorios.")
+                return redirect("core:admin_inventory")
+            try:
+                stock = Decimal(stock_raw)
+                min_stock = Decimal(min_raw)
+                cost = Decimal(cost_raw)
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Valores numéricos inválidos.")
+                return redirect("core:admin_inventory")
+            if Ingredient.objects.filter(name__iexact=name).exclude(pk=ing.pk).exists():
+                messages.error(request, f"Ya existe otro insumo con el nombre «{name}».")
+                return redirect("core:admin_inventory")
+            ing.name = name
+            ing.unit = unit
+            ing.current_stock = stock
+            ing.min_stock = min_stock
+            ing.average_cost = cost
+            ing.active = active
+            ing.save()
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="Ingredient", object_id=ing.pk, detail=f"Insumo actualizado: {name} stock {stock}")
+            messages.success(request, f"Insumo «{name}» actualizado.")
+            return redirect("core:admin_inventory")
+
+        if action == "delete_ingredient":
+            ing_id = request.POST.get("ingredient_id")
+            ing = get_object_or_404(Ingredient, pk=ing_id)
+            if ing.receipts.exists() or TechnicalSheetItem.objects.filter(ingredient=ing).exists():
+                messages.error(request, f"No se puede eliminar «{ing.name}» porque está usado en recepciones o recetas. Desactívelo en su lugar.")
+                return redirect("core:admin_inventory")
+            name = ing.name
+            ing.delete()
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="Ingredient", object_id="", detail=f"Insumo eliminado: {name}")
+            messages.success(request, f"Insumo «{name}» eliminado.")
+            return redirect("core:admin_inventory")
+
+        if action == "toggle_ingredient":
+            ing_id = request.POST.get("ingredient_id")
+            ing = get_object_or_404(Ingredient, pk=ing_id)
+            ing.active = not ing.active
+            ing.save(update_fields=["active"])
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="Ingredient", object_id=ing.pk, detail=f"Insumo {'activado' if ing.active else 'desactivado'}: {ing.name}")
+            messages.success(request, f"Insumo «{ing.name}» {'activado' if ing.active else 'desactivado'}.")
+            return redirect("core:admin_inventory")
+
+        # --- Fichas técnicas / Recetas ---
+        if action == "create_sheet":
+            dish_id = request.POST.get("dish_id")
+            dish = get_object_or_404(Dish, pk=dish_id)
+            if hasattr(dish, "sheet"):
+                messages.error(request, f"El platillo «{dish.name}» ya tiene una receta.")
+                return redirect("core:admin_inventory")
+            TechnicalSheet.objects.create(dish=dish)
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="TechnicalSheet", object_id=dish.pk, detail=f"Receta creada para platillo: {dish.name}")
+            messages.success(request, f"Receta creada para «{dish.name}». Agregue los insumos.")
+            return redirect("core:admin_inventory")
+
+        if action == "delete_sheet":
+            sheet_id = request.POST.get("sheet_id")
+            sheet = get_object_or_404(TechnicalSheet, pk=sheet_id)
+            dish_name = sheet.dish.name
+            sheet.delete()
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="TechnicalSheet", object_id="", detail=f"Receta eliminada: {dish_name}")
+            messages.success(request, f"Receta de «{dish_name}» eliminada.")
+            return redirect("core:admin_inventory")
+
+        if action == "add_sheet_item":
+            sheet_id = request.POST.get("sheet_id")
+            ingredient_id = request.POST.get("ingredient_id")
+            qty_raw = request.POST.get("quantity", "").strip()
+            sheet = get_object_or_404(TechnicalSheet, pk=sheet_id)
+            ingredient = get_object_or_404(Ingredient, pk=ingredient_id)
+            try:
+                qty = Decimal(qty_raw)
+                if qty <= 0:
+                    raise ValueError
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Cantidad inválida para el insumo.")
+                return redirect("core:admin_inventory")
+            if TechnicalSheetItem.objects.filter(sheet=sheet, ingredient=ingredient).exists():
+                messages.error(request, f"«{ingredient.name}» ya está en la receta de «{sheet.dish.name}». Edite la cantidad existente.")
+                return redirect("core:admin_inventory")
+            TechnicalSheetItem.objects.create(sheet=sheet, ingredient=ingredient, quantity=qty)
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="TechnicalSheetItem", object_id=sheet.pk, detail=f"Ingrediente {ingredient.name} ×{qty} agregado a {sheet.dish.name}")
+            messages.success(request, f"Insumo «{ingredient.name}» agregado a la receta de «{sheet.dish.name}».")
+            return redirect("core:admin_inventory")
+
+        if action == "update_sheet_item":
+            item_id = request.POST.get("item_id")
+            qty_raw = request.POST.get("quantity", "").strip()
+            item = get_object_or_404(TechnicalSheetItem, pk=item_id)
+            try:
+                qty = Decimal(qty_raw)
+                if qty <= 0:
+                    raise ValueError
+            except (InvalidOperation, ValueError, TypeError):
+                messages.error(request, "Cantidad inválida.")
+                return redirect("core:admin_inventory")
+            item.quantity = qty
+            item.save(update_fields=["quantity"])
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="TechnicalSheetItem", object_id=item.pk, detail=f"Cantidad actualizada {item.ingredient.name} ×{qty} en {item.sheet.dish.name}")
+            messages.success(request, "Cantidad actualizada.")
+            return redirect("core:admin_inventory")
+
+        if action == "remove_sheet_item":
+            item_id = request.POST.get("item_id")
+            item = get_object_or_404(TechnicalSheetItem, pk=item_id)
+            name = item.ingredient.name
+            dish_name = item.sheet.dish.name
+            item.delete()
+            AuditLog.log(request.user, ActionType.INVENTORY_CORRECTION, Result.SUCCESS,
+                         object_type="TechnicalSheetItem", object_id="", detail=f"Ingrediente {name} eliminado de receta {dish_name}")
+            messages.success(request, f"Insumo «{name}» eliminado de la receta de «{dish_name}».")
+            return redirect("core:admin_inventory")
+
+        messages.error(request, "Acción no reconocida.")
+        return redirect("core:admin_inventory")
+
+    ingredients = Ingredient.objects.all().order_by("name")
+    sheets = TechnicalSheet.objects.select_related("dish").prefetch_related("ingredients__ingredient").order_by("dish__name")
+    dishes = Dish.objects.all().order_by("name")
+    dishes_without_sheet = [d for d in dishes if not hasattr(d, "sheet")]
+    sheets_by_dish = set(sheets.values_list("dish_id", flat=True))
+    total_value = sum(i.current_stock * i.average_cost for i in ingredients)
+    return render(request, "core/admin_inventory.html", {
+        "ingredients": ingredients,
+        "sheets": sheets,
+        "dishes": dishes,
+        "dishes_without_sheet": dishes_without_sheet,
+        "sheets_by_dish": sheets_by_dish,
+        "total_value": total_value,
+    })
