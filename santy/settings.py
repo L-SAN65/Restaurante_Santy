@@ -139,7 +139,16 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Vercel filesystem es read-only excepto /tmp — usar /tmp/media en producción
+if os.environ.get("VERCEL") == "1":
+    MEDIA_ROOT = Path("/tmp/media")
+    # Asegurar que exista al arrancar
+    try:
+        MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+else:
+    MEDIA_ROOT = BASE_DIR / "media"
 
 # Los tests no requieren manifest hasheado (evita depender de npm run build).
 if "test" in sys.argv:

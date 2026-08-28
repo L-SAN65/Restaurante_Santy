@@ -534,10 +534,15 @@ def admin_dishes(request):
                 if image.size > 2 * 1024 * 1024:
                     messages.error(request, "La imagen no debe superar 2MB.")
                     return redirect("core:admin_dishes")
-                if not image.content_type.startswith("image/"):
+                if not (image.content_type or "").startswith("image/"):
                     messages.error(request, "El archivo debe ser una imagen (JPG/PNG).")
                     return redirect("core:admin_dishes")
-            dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image)
+            try:
+                dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image)
+            except Exception as e:
+                # En Vercel el FS es read-only fuera de /tmp; en local puede ser Pillow no instalado
+                messages.error(request, f"Error al guardar la imagen: {e}. Verifique que Pillow esté instalado y que MEDIA_ROOT sea escribible.")
+                return redirect("core:admin_dishes")
             AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
                          object_type="Dish", object_id=dish.pk, detail=f"Platillo creado: {name} ${price} img={bool(image)}")
             messages.success(request, f"Platillo «{name}» creado.")
@@ -579,13 +584,20 @@ def admin_dishes(request):
                 if image.size > 2 * 1024 * 1024:
                     messages.error(request, "La imagen no debe superar 2MB.")
                     return redirect("core:admin_dishes")
-                if not image.content_type.startswith("image/"):
+                if not (image.content_type or "").startswith("image/"):
                     messages.error(request, "El archivo debe ser una imagen.")
                     return redirect("core:admin_dishes")
                 if dish.image:
-                    dish.image.delete(save=False)
+                    try:
+                        dish.image.delete(save=False)
+                    except Exception:
+                        pass
                 dish.image = image
-            dish.save()
+            try:
+                dish.save()
+            except Exception as e:
+                messages.error(request, f"Error al guardar la imagen: {e}.")
+                return redirect("core:admin_dishes")
             AuditLog.log(request.user, ActionType.RESERVATION, Result.SUCCESS,
                          object_type="Dish", object_id=dish.pk, detail=f"Platillo actualizado: {name} ${price} activo={active} img={bool(dish.image)}")
             messages.success(request, f"Platillo «{name}» actualizado.")

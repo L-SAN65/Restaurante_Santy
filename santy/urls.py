@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -17,5 +19,6 @@ urlpatterns = [
     path("auditoria/", include("audit.urls")),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG or os.environ.get("VERCEL") == "1":
+    # En Vercel DEBUG=False pero /tmp/media debe servirse igual (FilesystemStorage en /tmp)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
