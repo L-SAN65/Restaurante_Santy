@@ -534,6 +534,20 @@ def _optimize_dish_image(uploaded_file, max_size=(800, 600), quality=82):
         return uploaded_file
 
 
+def _image_to_data_url(uploaded_file):
+    """Convierte imagen optimizada a data URL base64 para persistencia en Vercel (sin S3)."""
+    try:
+        import base64
+        uploaded_file.seek(0)
+        data = uploaded_file.read()
+        uploaded_file.seek(0)
+        b64 = base64.b64encode(data).decode()
+        ctype = getattr(uploaded_file, "content_type", "image/jpeg") or "image/jpeg"
+        return f"data:{ctype};base64,{b64}"
+    except Exception:
+        return ""
+
+
 @login_required
 def admin_dishes(request):
     """Gestión de platos (Dish) — solo ADMIN. CRUD completo desde el dashboard."""
@@ -567,6 +581,7 @@ def admin_dishes(request):
                 messages.error(request, f"Ya existe un platillo con el nombre «{name}».")
                 return redirect("core:admin_dishes")
             # Validar imagen
+            image_data = ""
             if image:
                 if image.size > 2 * 1024 * 1024:
                     messages.error(request, "La imagen no debe superar 2MB.")
@@ -575,8 +590,9 @@ def admin_dishes(request):
                     messages.error(request, "El archivo debe ser una imagen (JPG/PNG).")
                     return redirect("core:admin_dishes")
                 image = _optimize_dish_image(image)
+                image_data = _image_to_data_url(image)
             try:
-                dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image)
+                dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image, image_data=image_data)
             except Exception as e:
                 # En Vercel el FS es read-only fuera de /tmp; en local puede ser Pillow no instalado
                 messages.error(request, f"Error al guardar la imagen: {e}. Verifique que Pillow esté instalado y que MEDIA_ROOT sea escribible.")
@@ -616,8 +632,12 @@ def admin_dishes(request):
             dish.description = description
             dish.active = active
             if remove_image and dish.image:
-                dish.image.delete(save=False)
+                try:
+                    dish.image.delete(save=False)
+                except Exception:
+                    pass
                 dish.image = None
+                dish.image_data = ""
             if image:
                 if image.size > 2 * 1024 * 1024:
                     messages.error(request, "La imagen no debe superar 2MB.")
@@ -626,12 +646,16 @@ def admin_dishes(request):
                     messages.error(request, "El archivo debe ser una imagen.")
                     return redirect("core:admin_dishes")
                 image = _optimize_dish_image(image)
+                image_data = _image_to_data_url(image)
                 if dish.image:
                     try:
                         dish.image.delete(save=False)
                     except Exception:
                         pass
                 dish.image = image
+                dish.image_data = image_data
+            elif remove_image:
+                dish.image_data = ""
             try:
                 dish.save()
             except Exception as e:

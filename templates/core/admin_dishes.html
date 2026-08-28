@@ -78,8 +78,8 @@
         <input type="hidden" name="dish_id" value="{{ dish.pk }}">
         <!-- Imagen -->
         <div class="shrink-0 flex flex-col items-center gap-2">
-          {% if dish.image %}
-            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" class="img-preview" id="img-{{ dish.pk }}">
+          {% if dish.image_url %}
+            <img src="{{ dish.image_url }}" alt="{{ dish.name }}" class="img-preview" id="img-{{ dish.pk }}">
           {% else %}
             <div class="img-preview flex items-center justify-center text-[10px] text-text-secondary bg-surface-containerLow" id="img-{{ dish.pk }}">Sin imagen</div>
           {% endif %}
@@ -87,7 +87,7 @@
             Cambiar
             <input type="file" name="image" accept="image/*" class="hidden" onchange="previewDishImage(this, '{{ dish.pk }}')">
           </label>
-          {% if dish.image %}
+          {% if dish.image_url %}
           <label class="inline-flex items-center gap-1 text-[11px] text-text-secondary">
             <input type="checkbox" name="remove_image" class="rounded"> Quitar
           </label>

@@ -76,8 +76,8 @@
       {% for dish in dishes %}
       <article class="dish-card group flex flex-col overflow-hidden rounded-card border border-outline-variant/30 bg-white hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5" data-name="{{ dish.name|lower }}" data-available="{% if dish.active %}1{% else %}0{% endif %}">
         <div class="relative h-52 overflow-hidden bg-surface-containerLow cursor-zoom-in" onclick="openModal('{{ dish.pk }}')">
-          {% if dish.image %}
-            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+          {% if dish.image_url %}
+            <img src="{{ dish.image_url }}" alt="{{ dish.name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
           {% else %}
             <div class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-amber-50 to-surface-containerLow text-text-secondary">
               <svg class="h-10 w-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -115,7 +115,7 @@
         </div>
         <!-- modal data (hidden) -->
         <div id="modal-data-{{ dish.pk }}" class="hidden">
-          <div class="modal-image">{% if dish.image %}{{ dish.image.url }}{% endif %}</div>
+          <div class="modal-image">{% if dish.image_url %}{{ dish.image_url }}{% endif %}</div>
           <div class="modal-name">{{ dish.name }}</div>
           <div class="modal-price">{{ dish.price|usd }}</div>
           <div class="modal-desc">{% if dish.description %}{{ dish.description }}{% else %}Platillo de la carta Santy elaborado bajo ficha técnica y control de inventario.{% endif %}</div>

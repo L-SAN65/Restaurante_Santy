@@ -145,6 +145,12 @@ class Dish(models.Model):
         null=True,
         help_text="Imagen del platillo para el menú cliente (recomendado 800x600, JPG/PNG, máx 2MB).",
     )
+    # Fallback persistente para Vercel (sin S3): base64 para menú cliente siempre visible
+    image_data = models.TextField(
+        blank=True,
+        default="",
+        help_text="Data URL base64 de la imagen (fallback si S3/filesystem no disponible).",
+    )
     description = models.CharField(
         max_length=255,
         blank=True,
@@ -157,3 +163,36 @@ class Dish(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def image_url(self):
+        """URL persistente para menú cliente: prioriza base64 (Vercel) luego S3/filesystem."""
+        if self.image_data:
+            return self.image_data
+        if self.image:
+            try:
+                # Si image_data vacío pero archivo existe, generar data URL al vuelo (migración perezosa)
+                if not self.image_data and self.image.name:
+                    try:
+                        import base64
+                        self.image.open()
+                        data = self.image.read()
+                        if data:
+                            b64 = base64.b64encode(data).decode()
+                            # Guardar para próximas veces (no falla si no se puede)
+                            try:
+                                Dish.objects.filter(pk=self.pk).update(image_data=f"data:image/jpeg;base64,{b64}")
+                            except Exception:
+                                pass
+                            return f"data:image/jpeg;base64,{b64}"
+                    except Exception:
+                        pass
+                    finally:
+                        try:
+                            self.image.close()
+                        except Exception:
+                            pass
+                return self.image.url
+            except Exception:
+                pass
+        return ""
