@@ -497,6 +497,43 @@ def warehouse_dashboard(request):
 # ---------------------------------------------------------------------------
 
 
+def _optimize_dish_image(uploaded_file, max_size=(800, 600), quality=82):
+    """Optimiza imagen de platillo para menú cliente: resize + JPEG/WebP (satisface carga rápida).
+    Devuelve nuevo SimpleUploadedFile o el original si falla. Nunca rompe el flujo."""
+    try:
+        from io import BytesIO
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        # Validar que sea imagen legible
+        uploaded_file.seek(0)
+        img = Image.open(uploaded_file)
+        if img.mode in ("RGBA", "LA"):
+            bg = Image.new("RGB", img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[-1])
+            img = bg
+        elif img.mode != "RGB":
+            img = img.convert("RGB")
+
+        # Resize manteniendo aspecto, solo si supera max
+        if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+            img.thumbnail(max_size, Image.LANCZOS)
+
+        buf = BytesIO()
+        # Usar JPEG optimizado (mejor compatibilidad CDN) - nombre .jpg
+        img.save(buf, format="JPEG", quality=quality, optimize=True, progressive=True)
+        buf.seek(0)
+        # Normalizar nombre a .jpg para cache
+        name = uploaded_file.name.rsplit(".", 1)[0] + ".jpg"
+        return SimpleUploadedFile(name, buf.getvalue(), content_type="image/jpeg")
+    except Exception:
+        try:
+            uploaded_file.seek(0)
+        except Exception:
+            pass
+        return uploaded_file
+
+
 @login_required
 def admin_dishes(request):
     """Gestión de platos (Dish) — solo ADMIN. CRUD completo desde el dashboard."""
@@ -537,6 +574,7 @@ def admin_dishes(request):
                 if not (image.content_type or "").startswith("image/"):
                     messages.error(request, "El archivo debe ser una imagen (JPG/PNG).")
                     return redirect("core:admin_dishes")
+                image = _optimize_dish_image(image)
             try:
                 dish = Dish.objects.create(name=name, price=price, description=description, active=active, image=image)
             except Exception as e:
@@ -587,6 +625,7 @@ def admin_dishes(request):
                 if not (image.content_type or "").startswith("image/"):
                     messages.error(request, "El archivo debe ser una imagen.")
                     return redirect("core:admin_dishes")
+                image = _optimize_dish_image(image)
                 if dish.image:
                     try:
                         dish.image.delete(save=False)
