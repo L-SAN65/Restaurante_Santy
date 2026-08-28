@@ -17,6 +17,12 @@ env = environ.Env(
     DEBUG=(bool, True),
     SECRET_KEY=(str, "django-insecure-santy-pos-dev-only"),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "testserver", ".vercel.app"]),
+    SUPABASE_URL=(str, ""),
+    AWS_ACCESS_KEY_ID=(str, ""),
+    AWS_SECRET_ACCESS_KEY=(str, ""),
+    AWS_STORAGE_BUCKET_NAME=(str, ""),
+    AWS_S3_REGION_NAME=(str, "us-east-1"),
+    AWS_S3_ENDPOINT_URL=(str, ""),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -156,14 +162,46 @@ if "test" in sys.argv:
 else:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": STATICFILES_STORAGE,
-    },
-}
+# Supabase Storage (S3-compatible) para imágenes persistentes en Vercel.
+# Si tienes bucket configurado, define en Vercel Env: SUPABASE_URL, AWS_ACCESS_KEY_ID,
+# AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME. Si no, fallback a filesystem (/tmp en Vercel).
+_SUPABASE_URL = env("SUPABASE_URL", default="")
+_AWS_BUCKET = env("AWS_STORAGE_BUCKET_NAME", default="")
+_AWS_KEY = env("AWS_ACCESS_KEY_ID", default="")
+_AWS_SECRET = env("AWS_SECRET_ACCESS_KEY", default="")
+_USE_S3 = bool(_SUPABASE_URL and _AWS_BUCKET and _AWS_KEY and _AWS_SECRET)
+
+if _USE_S3:
+    # Deriva endpoint S3 si no se provee explícitamente
+    _S3_ENDPOINT = env("AWS_S3_ENDPOINT_URL", default="") or f"{_SUPABASE_URL.rstrip('/')}/storage/v1/s3"
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": _AWS_KEY,
+                "secret_key": _AWS_SECRET,
+                "bucket_name": _AWS_BUCKET,
+                "endpoint_url": _S3_ENDPOINT,
+                "region_name": env("AWS_S3_REGION_NAME", default="us-east-1"),
+                "file_overwrite": False,
+                "default_acl": None,
+                "querystring_auth": False,  # URLs públicas si bucket es público
+                "object_parameters": {"CacheControl": "max-age=86400"},
+            },
+        },
+        "staticfiles": {"BACKEND": STATICFILES_STORAGE},
+    }
+    # En S3 no hay MEDIA_ROOT local; MEDIA_URL será la URL del bucket
+    # Pero mantenemos MEDIA_URL para compatibilidad (no usado por S3)
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": STATICFILES_STORAGE,
+        },
+    }
 
 # ---------------------------------------------------------------------------
 # Crispy forms (Tailwind theme)
