@@ -20,10 +20,10 @@
 
   <!-- Hero Haute Management — con imagen de fondo -->
   <section class="relative overflow-hidden border-b border-outline-variant/20 py-10 md:py-14 isolate">
-    <!-- Imagen de fondo (solo en esta sección) -->
-    <div class="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat" style="background-image: url('{% static 'img/menu-bg.png' %}'); background-position: center 35%;"></div>
-    <!-- Velo beige claro para legibilidad del texto oscuro -->
-    <div class="absolute inset-0 -z-10 bg-[#fbf9f4]/80 backdrop-blur-[1px]"></div>
+    <!-- Imagen de fondo (solo en esta sección) — aclarada -->
+    <div class="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-90" style="background-image: url('{% static 'img/menu-bg.png' %}'); background-position: center 35%; filter: brightness(1.25) contrast(0.95) saturate(0.9);"></div>
+    <!-- Velo claro — /55 deja ver más imagen pero suave, /65 más beige. Actual: /62 para imagen clara -->
+    <div class="absolute inset-0 -z-10 bg-[#fbf9f4]/62 backdrop-blur-[1px]"></div>
     <div class="mx-auto max-w-[1440px] px-4 lg:px-10">
       <div class="grid gap-8 lg:grid-cols-2 items-center">
         <div class="text-center lg:text-left">
